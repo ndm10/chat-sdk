@@ -1,0 +1,18 @@
+/* universal small scrollbar for WebKit browsers (Chrome, Edge, Safari)
+   adjust both vertical (width) and horizontal (height) */
+html,
+body {
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 4px solid rgba(0, 0, 0, 0);
+  background-clip: padding-box;
+}
