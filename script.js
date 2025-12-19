@@ -1,3 +1,30 @@
+// Render chat list
+const chatList = [
+    { id: 1, name: "ATACC - Công ty CP Tư vấn và Hỗ trợ quản lý ATACC", logo: "/assets/logo-atacc.png" },
+    { id: 2, name: "MIC - Tổng công ty Cổ phần Bảo hiểm Quân đội", logo: "/assets/logo-mic.png" },
+    { id: 3, name: "PJICO - Tổng Công ty Bảo hiểm PJICO", logo: "/assets/logo-pjico.png" }
+];
+
+const listEl = document.querySelector("#list-items ul");
+
+function renderChatList(items) {
+    listEl.innerHTML = items
+        .map(
+            item => `
+        <li data-id="${item.id}">
+          <img class="logo-item" src="${item.logo}" alt="Logo" />
+          <h4 class="item-header">${item.name}</h4>
+        </li>
+      `
+        )
+        .join("");
+}
+
+renderChatList(chatList);
+
+// Selected chat item
+let selectedChat = null;
+
 // Auto-resize textarea
 const textarea = document.getElementById('message-input');
 textarea.addEventListener('input', autoResize, false);
@@ -12,16 +39,18 @@ let chatBoxListContainerDisplay = false;
 let chatBoxInputInfoDisplay = true;
 let chatDetailsDisplay = true;
 
-var chatBoxIcon = document.querySelector('#chat-icon');
-var chatBoxContainer = document.querySelector('#chat-box');
-var chatBoxListContainer = document.querySelector('#list-items');
-var chatBoxListItem = document.querySelectorAll('#list-items li');
-var chatBoxInputInfo = document.querySelector('#info-input');
-var turnBackButton = document.querySelector('#turn-back-button');
-var continueButton = document.querySelector('#continue-button');
-var chatDetails = document.querySelector('#chat-details');
-var detailsBackButton = document.querySelector('#btn-details-back');
-var messageContainer = document.querySelector('#message-container');
+const infoTitle = document.querySelector('#info-input .info-header h4');
+const chatBoxIcon = document.querySelector('#chat-icon');
+const chatBoxContainer = document.querySelector('#chat-box');
+const chatBoxFilter = document.querySelector('#chat-box-header');
+const chatBoxListContainer = document.querySelector('#list-items');
+const chatBoxListItem = document.querySelectorAll('#list-items li');
+const chatBoxInputInfo = document.querySelector('#info-input');
+const turnBackButton = document.querySelector('#turn-back-button');
+const continueButton = document.querySelector('#continue-button');
+const chatDetails = document.querySelector('#chat-details');
+const detailsBackButton = document.querySelector('#btn-details-back');
+const messageContainer = document.querySelector('#message-container');
 
 // Function to scroll to the bottom of message container
 function scrollToBottom() {
@@ -47,9 +76,16 @@ chatBoxListItem.forEach((item) => {
         if (chatBoxInputInfo) {
             chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
             chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+            chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
 
             chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
             chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+
+            const { id } = item.dataset;
+            const name = item.querySelector('.item-header')?.textContent?.trim() || '';
+
+            selectedChat = { id, name };
+            infoTitle.textContent = name || 'Chọn cuộc trò chuyện';
         }
     });
 });
@@ -58,6 +94,7 @@ turnBackButton.addEventListener('click', function () {
     if (chatBoxInputInfo) {
         chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
         chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+        chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
 
         chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
         chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
@@ -73,7 +110,7 @@ continueButton.addEventListener('click', function () {
         chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
 
         // Scroll to bottom after a short delay to ensure content is rendered
-        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 0);
     }
 })
 

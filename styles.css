@@ -38,7 +38,7 @@ body,
   flex: 1;
 }
 
-.chat-box-header {
+#chat-box-header {
   background-color: #ffffffff;
   border-bottom: 1px solid #e7e7e7ff;
   box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
@@ -105,14 +105,25 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 #list-items ul li:hover {
   background-color: #f0f0f0;
 }
 
-#list-items .item-header {
-  margin: 2% 0;
+.logo-item {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: #ffffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid #ccc;
 }
 
 .readed {
@@ -133,6 +144,13 @@ body,
   height: 100%;
 }
 
+#info-input .info-header{
+  padding: 1% 3%;
+  background-color: #dadadaff;
+  border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(109, 109, 109, 0.1);
+}
+
 #info-input input {
   width: 60%;
   padding: 10px 10px;
@@ -148,6 +166,17 @@ body,
 #info-input-buttons {
   display: flex;
   gap: 0.825rem;
+}
+
+#info-input input.error {
+  border: 2px solid #ff4444;
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 #info-input #turn-back-button,
@@ -168,6 +197,11 @@ body,
   width: 20px;
   height: 20px;
   margin-right: 8px;
+}
+
+#info-input #error-info-input{
+  color: red;
+  font-size: 1rem;
 }
 
 /* END: Chat info input */
@@ -349,7 +383,7 @@ body,
   outline: none;
 }
 
-.message-sending #send-message-button {
+.message-sending #btn-send-message {
   background-color: #5b5bdfff;
   border: none;
   border-radius: 50px;
@@ -361,7 +395,7 @@ body,
   align-items: center;
 }
 
-.message-sending #send-message-button svg {
+.message-sending #btn-send-message svg {
   width: 20px;
   height: 20px;
   fill: white;
@@ -410,6 +444,7 @@ body,
     font-size: 0.95rem;
   }
 
+  /* Info input style*/
   #info-input input {
     width: 80%;
     font-size: 1rem;
@@ -500,7 +535,7 @@ body,
     padding: 8px;
   }
 
-  .message-sending #send-message-button {
+  .message-sending #btn-send-message {
     padding: 8px;
   }
 }

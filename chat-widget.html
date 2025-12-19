@@ -5,10 +5,13 @@
     <title>Trang web của bạn</title>
   </head>
   <body>
-    <h1>Chào mừng đến với website!</h1>
+    <h1>Chào mừng đến với signalR!</h1>
 
     <!-- Nhúng SDK -->
     <script src="chat-sdk.js"></script>
-    <chat-widget></chat-widget>
+    <chat-widget
+      position="bottom-left"
+      hub-url="https://localhost:7299/chatHub"
+    ></chat-widget>
   </body>
 </html>
