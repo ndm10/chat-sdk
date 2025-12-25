@@ -355,6 +355,7 @@ body,
 }
 
 .message p {
+  white-space: pre-wrap;
   max-width: 80%;
   padding: 10px;
   border-radius: 12px;

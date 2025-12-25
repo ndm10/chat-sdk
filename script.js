@@ -586,9 +586,7 @@ connection.on("ReceiveGroupMessage", (data) => {
         }
         </div>
         <div class="message">
-            <p>
-                ${data.noi_dung_tin_nhan}
-            </p>
+            <p>${data.noi_dung_tin_nhan}</p>
         </div>
     `;
     document.getElementById("message-container").appendChild(msg);
