@@ -1,5 +1,12 @@
-/* ------------------------ */
-/* START: Reset CSS */
+/* ================================================================================
+   CHAT SDK - REFACTORED STYLESHEET
+   ================================================================================
+   Organization: Global Reset → Container Layout → Components → Responsive Design
+   ================================================================================ */
+
+/* ================================================================================
+   GLOBAL RESET & BASE STYLES
+   ================================================================================ */
 html,
 body,
 * {
@@ -8,20 +15,22 @@ body,
   font-family: Arial, sans-serif;
   box-sizing: border-box;
 }
-/* END: Reset CSS */
-/* ------------------------ */
+
+/* ================================================================================
+   CHAT CONTAINER & MAIN BOX LAYOUT
+   ================================================================================ */
+.chat-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+}
+
 #chat-icon {
   display: flex;
   width: 60px;
   height: 60px;
   justify-content: center;
   align-items: center;
-}
-
-.chat-container {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
 }
 
 #chat-box {
@@ -38,6 +47,17 @@ body,
   flex: 1;
 }
 
+.chat-box-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffffff;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ================================================================================
+   CHAT HEADER & FILTER
+   ================================================================================ */
 #chat-box-header {
   background-color: #ffffffff;
   border-bottom: 1px solid #e7e7e7ff;
@@ -81,23 +101,16 @@ body,
   background-color: #eeeeeeff !important;
 }
 
-.chat-box-container {
-  display: flex;
-  flex-direction: column;
-  background-color: #ffffffff;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* ------------------------ */
-/* START: Chat list item style */
+/* ================================================================================
+   CHAT LIST & LIST ITEMS
+   ================================================================================ */
 #list-items {
   position: relative;
   background-color: #ffffffff;
   display: flex;
   flex-direction: column;
   width: 100%;
-  overflow-y: auto; /* Cho phép scroll */
+  overflow-y: auto;
 }
 
 #list-items ul {
@@ -135,11 +148,10 @@ body,
 .readed {
   color: gray;
 }
-/* END: Chat list item style */
-/* ------------------------ */
 
-/* ------------------------ */
-/* START: Chat info input */
+/* ================================================================================
+   CHAT INFO INPUT (User Information Dialog)
+   ================================================================================ */
 #info-input {
   background-color: #ffffffff;
   display: flex;
@@ -169,27 +181,14 @@ body,
   outline: none;
 }
 
-#info-input-buttons {
-  display: flex;
-  gap: 0.825rem;
-}
-
 #info-input input.error {
   border: 2px solid #ff4444;
   animation: shake 0.3s;
 }
 
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
+#info-input-buttons {
+  display: flex;
+  gap: 0.825rem;
 }
 
 #info-input #turn-back-button,
@@ -217,11 +216,22 @@ body,
   font-size: 1rem;
 }
 
-/* END: Chat info input */
-/* ------------------------ */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
 
-/* ------------------------ */
-/* START: Chat detail style */
+/* ================================================================================
+   CHAT DETAILS & MESSAGE CONTAINER
+   ================================================================================ */
 #chat-details {
   position: absolute;
   top: 0;
@@ -308,6 +318,40 @@ body,
   overflow-y: auto;
 }
 
+/* ================================================================================
+   MESSAGE STYLING
+   ================================================================================ */
+.message {
+  display: flex;
+}
+
+.message p {
+  white-space: pre-wrap;
+  max-width: 80%;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 0;
+}
+
+.partner .message {
+  margin-left: 10%;
+  justify-content: flex-start;
+}
+
+.me .message {
+  margin-right: 10%;
+  justify-content: flex-end;
+}
+
+.partner .message p {
+  background-color: rgb(240, 240, 240);
+}
+
+.me .message p {
+  background-color: rgba(75, 75, 218, 1);
+  color: white;
+}
+
 .avatar {
   width: 35px;
   height: 35px;
@@ -350,37 +394,9 @@ body,
   align-items: flex-end;
 }
 
-.message {
-  display: flex;
-}
-
-.message p {
-  white-space: pre-wrap;
-  max-width: 80%;
-  padding: 10px;
-  border-radius: 12px;
-  margin: 0;
-}
-
-.partner .message {
-  margin-left: 10%;
-  justify-content: flex-start;
-}
-
-.me .message {
-  margin-right: 10%;
-  justify-content: flex-end;
-}
-
-.partner .message p {
-  background-color: rgb(240, 240, 240);
-}
-
-.me .message p {
-  background-color: rgba(75, 75, 218, 1);
-  color: white;
-}
-
+/* ================================================================================
+   MESSAGE INPUT & SENDING
+   ================================================================================ */
 .message-sending {
   display: flex;
   align-items: center;
@@ -436,11 +452,40 @@ body,
 .message-sending button:hover {
   background-color: #4b4bda;
 }
-/* END: Chat detail style */
-/* ------------------------ */
 
-/* ======================== */
-/* START: RESPONSIVE ADJUSTMENTS */
+/* ================================================================================
+   EMOJI PICKER STYLING
+   ================================================================================ */
+#emoji-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#emoji-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+emoji-picker {
+  position: absolute;
+  bottom: 70px;
+  right: 15px;
+  display: none;
+}
+
+emoji-picker.show {
+  display: block;
+}
+
+/* ================================================================================
+   RESPONSIVE DESIGN - TABLET (768px and below)
+   ================================================================================ */
 @media (max-width: 768px) {
   .chat-container {
     bottom: 15px;
@@ -453,11 +498,6 @@ body,
     height: 55px;
   }
 
-  #chat-icon svg {
-    width: 35px;
-    height: 35px;
-  }
-
   #chat-box {
     left: 50%;
     transform: translateX(-50%);
@@ -465,7 +505,7 @@ body,
     max-width: 500px;
     height: 85vh;
     top: auto;
-    bottom: 75px; /* Đẩy lên từ dưới thay vì top cố định */
+    bottom: 75px;
   }
 
   .chat-filter {
@@ -476,7 +516,6 @@ body,
     font-size: 0.95rem;
   }
 
-  /* Info input style*/
   #info-input input {
     width: 80%;
     font-size: 1rem;
@@ -511,6 +550,9 @@ body,
   }
 }
 
+/* ================================================================================
+   RESPONSIVE DESIGN - MOBILE (480px and below)
+   ================================================================================ */
 @media (max-width: 480px) {
   #chat-icon {
     width: 50px;
@@ -571,5 +613,7 @@ body,
     padding: 8px;
   }
 }
-/* END: RESPONSIVE ADJUSTMENTS */
-/* ======================== */
+
+/* ================================================================================ */
+/* END OF STYLESHEET */
+/* ================================================================================ */

@@ -3,6 +3,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./styles.css" />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"
+    ></script>
   </head>
   <body>
     <h3 id="welcome-text"></h3>
@@ -102,6 +106,7 @@
                 placeholder="Nhập tin nhắn..."
               ></textarea>
             </div>
+            <button id="emoji-button">😊</button>
             <button id="btn-send-message">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                 <path
@@ -113,7 +118,6 @@
         </div>
       </div>
     </div>
-    <!-- Thư viện SignalR JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="./script.js"></script>
   </body>

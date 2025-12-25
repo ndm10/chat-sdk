@@ -1,23 +1,68 @@
-// Nhập tên user khi load trang
+// ================== CONFIGURATION ==================
+const BASE_URL = 'https://localhost:7004/';
+const PAGE_SIZE = 10;
+const SCROLL_THRESHOLD = 20;
+const SCROLL_LOAD_MORE_THRESHOLD = 100;
+const DEBOUNCE_DELAY = 200;
+
+// ================== USER INPUT ==================
 let token = prompt("Nhập access token của bạn:", "");
-if (!token) { token = "Anonymous"; }
+if (!token) token = "Anonymous";
 
 let userId = prompt("Nhập mã của bạn:", "");
-if (!userId) { userId = "Anonymous"; }
+if (!userId) userId = "Anonymous";
 
 let fullName = prompt("Nhập tên đầy đủ của bạn:");
-if (!fullName) { fullName = "Khách hàng"; }
+if (!fullName) fullName = "Khách hàng";
 
 let ePartnerCode = prompt("Nhập ePartnerCode của bạn:", "BENH_VIEN");
-if (!ePartnerCode) { ePartnerCode = "PORTAL"; }
+if (!ePartnerCode) ePartnerCode = "PORTAL";
 
 document.querySelector('#welcome-text').innerHTML = `Xin chào, ${token}!`;
 
-const baseURL = 'https://localhost:7004/';
+// ================== STATE MANAGEMENT ==================
+let selectedChat = null;
+let currentPage = 1;
+let isLoading = false;
+let hasMoreMessages = true;
 
-const pageSize = 10;
+let chatListCurrentPage = 1;
+let chatListIsLoading = false;
+let chatListHasMore = true;
+let currentSearchTerm = "";
 
-// Function to parse custom date string format
+let chatBoxContainerDisplay = true;
+let chatBoxListContainerDisplay = false;
+let chatBoxInputInfoDisplay = true;
+let chatDetailsDisplay = true;
+
+// ================== DOM ELEMENTS ==================
+const listEl = document.querySelector("#list-items ul");
+const infoTitle = document.querySelector('#info-input .info-header h4');
+const chatBoxIcon = document.querySelector('#chat-icon');
+const chatBoxContainer = document.querySelector('#chat-box');
+const chatBoxFilter = document.querySelector('#chat-box-header');
+const searchChatInput = document.querySelector('#search-chat-input');
+const searchChatIcon = document.querySelector('#search-chat-icon');
+const chatBoxListContainer = document.querySelector('#list-items');
+const chatBoxInputInfo = document.querySelector('#info-input');
+const turnBackButton = document.querySelector('#turn-back-button');
+const continueButton = document.querySelector('#continue-button');
+const chatDetails = document.querySelector('#chat-details');
+const btnX = document.querySelector('#btn-x');
+const detailsBackButton = document.querySelector('#btn-details-back');
+const messageContainer = document.querySelector('#message-container');
+const hsblInput = document.querySelector('#input-shsbl');
+const userNameInput = document.querySelector('#input-username');
+const errorInfoInput = document.querySelector('#error-info-input');
+const btnSendMessage = document.querySelector('#btn-send-message');
+const textarea = document.getElementById('message-input');
+const emojiButton = document.getElementById('emoji-button');
+const messageInput = document.getElementById('message-input');
+
+userNameInput.value = fullName;
+
+// ================== UTILITY FUNCTIONS ==================
 function parseCustomDateString(str) {
     // Expected format: dd/MM/yyyy HH:mm:ss
     const [date, time] = str.split(' ');
@@ -25,18 +70,38 @@ function parseCustomDateString(str) {
     return new Date(`${year}-${month}-${day}T${time}`);
 }
 
-// Render chat list
-const listEl = document.querySelector("#list-items ul");
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function autoResize() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+}
+
+function scrollToBottom() {
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+// ================== CHAT LIST FUNCTIONS ==================
 function renderChatList(items, append = false) {
     const htmlContent = items
-        .map(
-            item => `
+        .map(item => `
             <li data-id="${item.MA}">
                 <img class="logo-item" src="${item.LINK_LOGO}" alt="Logo" />
                 <h4 class="title-item">${item.TEN}</h4>
             </li>
-            `
-        )
+        `)
         .join("");
 
     if (append) {
@@ -46,43 +111,36 @@ function renderChatList(items, append = false) {
     }
 }
 
-// Kiểm tra nếu danh sách không lấp đầy container, tự động load thêm
 async function ensureChatListFilled() {
-    // Kiểm tra xem danh sách có đủ để scroll hay chưa
     const scrollHeight = chatBoxListContainer.scrollHeight;
     const clientHeight = chatBoxListContainer.clientHeight;
 
-    // Nếu chiều cao nội dung <= chiều cao container (không scroll được)
-    // thì load thêm trang tiếp theo
     if (scrollHeight <= clientHeight && chatListHasMore && !chatListIsLoading) {
         console.log('Danh sách chưa đủ để scroll, load thêm...');
         await loadMoreChatList();
-
-        // Recursive call để tiếp tục load nếu vẫn chưa đủ
         setTimeout(() => ensureChatListFilled(), 100);
     }
 }
 
-// Load chat list from API
-// Load chat list from API
 async function loadChatList(searchTerm, page = 1, append = false) {
     try {
         const body = {
-            "trang": page,
-            "so_dong": pageSize,
-            "nd_tim": searchTerm || ""
-        }
+            trang: page,
+            so_dong: PAGE_SIZE,
+            nd_tim: searchTerm || ""
+        };
 
         const header = {
-            "ConnectionId": connection.connectionId || "",
-            "eAction": "OO78LLZ0T7NLEZ3",
-        }
+            ConnectionId: connection.connectionId || "",
+            eAction: "OO78LLZ0T7NLEZ3",
+        };
 
-        const response = await fetch(`${baseURL}api/chat/execute`, {
+        const response = await fetch(`${BASE_URL}api/chat/execute`, {
             method: 'POST',
             headers: header,
             body: JSON.stringify(body)
         });
+
         if (!response.ok) throw new Error('Failed to fetch chat list');
 
         const data = await response.json();
@@ -102,7 +160,7 @@ async function loadChatList(searchTerm, page = 1, append = false) {
             setTimeout(() => ensureChatListFilled(), 50);
         }
 
-        return data.data.length; // Return số lượng items để kiểm tra
+        return data.data.length;
     } catch (error) {
         console.error('Error loading chat list:', error);
         if (!append) {
@@ -112,7 +170,6 @@ async function loadChatList(searchTerm, page = 1, append = false) {
     }
 }
 
-// Load more chat list items (infinity scroll)
 async function loadMoreChatList() {
     if (chatListIsLoading || !chatListHasMore) {
         return;
@@ -122,7 +179,6 @@ async function loadMoreChatList() {
 
     try {
         chatListCurrentPage++;
-
         const count = await loadChatList(currentSearchTerm, chatListCurrentPage, true);
 
         if (count === 0) {
@@ -131,34 +187,59 @@ async function loadMoreChatList() {
         }
     } catch (error) {
         console.error('Lỗi khi load thêm chat list:', error);
-        chatListCurrentPage--; // Rollback page nếu lỗi
+        chatListCurrentPage--;
     } finally {
         chatListIsLoading = false;
     }
 }
 
-// Load message history
+function wireChatItemClicks() {
+    const chatBoxListItem = document.querySelectorAll('#list-items li');
+    chatBoxListItem.forEach((item) => {
+        item.addEventListener('click', function () {
+            if (chatBoxInputInfo) {
+                chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
+                chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+                chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+
+                chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
+                chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+
+                const { id } = item.dataset;
+                const name = item.querySelector('.title-item')?.textContent?.trim() || '';
+
+                selectedChat = { id, name };
+                infoTitle.textContent = name || 'Không tìm thấy cuộc trò chuyện!';
+                userNameInput.value = fullName;
+            }
+        });
+    });
+}
+
+// ================== MESSAGE FUNCTIONS ==================
 async function loadMessageHistory(groupName, page = 1) {
     try {
         const body = {
-            "trang": page,
-            "so_dong": pageSize,
-            "nhom": groupName || ""
-        }
+            trang: page,
+            so_dong: PAGE_SIZE,
+            nhom: groupName || ""
+        };
 
         const header = {
-            "ConnectionId": connection.connectionId || "",
-            "eAction": "P75EVW99A84IGNK",
-        }
+            ConnectionId: connection.connectionId || "",
+            eAction: "P75EVW99A84IGNK",
+        };
 
-        const response = await fetch(`${baseURL}api/chat/execute`, {
+        const response = await fetch(`${BASE_URL}api/chat/execute`, {
             method: 'POST',
             headers: header,
             body: JSON.stringify(body)
         });
+
         if (!response.ok) throw new Error('Failed to fetch chat list');
 
         const data = await response.json();
+
         // Sort messages by NGAY_GUI ascending
         console.log('Loaded messages:', data.data);
         const sortedMessages = data.data.sort((a, b) => {
@@ -174,7 +255,6 @@ async function loadMessageHistory(groupName, page = 1) {
     }
 }
 
-// Append message history to chat container
 async function appendMessageHistory(messages, prepend = false) {
     const fragment = document.createDocumentFragment();
 
@@ -219,124 +299,33 @@ async function loadMoreMessages() {
 
     isLoading = true;
 
-    // Lưu vị trí scroll hiện tại và chiều cao cũ
     const oldScrollHeight = messageContainer.scrollHeight;
     const oldScrollTop = messageContainer.scrollTop;
 
     try {
-        // Tăng page để load tin nhắn cũ hơn
         currentPage++;
-
         const messages = await loadMessageHistory(selectedChat.hsbl, currentPage);
 
-        // Kiểm tra còn tin nhắn không
         if (messages.length === 0) {
             hasMoreMessages = false;
             console.log('Đã tải hết tin nhắn');
             return;
         }
 
-        // Thêm tin nhắn vào đầu (prepend = true)
         await appendMessageHistory(messages, true);
 
-        // Giữ vị trí scroll (quan trọng!)
-        // Tính khoảng cách mới = chiều cao mới - chiều cao cũ + vị trí cũ
         const newScrollHeight = messageContainer.scrollHeight;
         messageContainer.scrollTop = newScrollHeight - oldScrollHeight + oldScrollTop;
 
     } catch (error) {
         console.error('Lỗi khi load thêm tin nhắn:', error);
-        currentPage--; // Rollback page nếu lỗi
+        currentPage--;
     } finally {
         isLoading = false;
     }
 }
 
-// Selected chat item
-let selectedChat = null;
-let currentPage = 1;
-let isLoading = false;
-let hasMoreMessages = true;
-
-// Pagination state for chat list
-let chatListCurrentPage = 1;
-let chatListIsLoading = false;
-let chatListHasMore = true;
-let currentSearchTerm = "";
-
-// Auto-resize textarea
-const textarea = document.getElementById('message-input');
-textarea.addEventListener('input', autoResize, false);
-function autoResize() {
-    this.style.height = 'auto';
-    this.style.height = this.scrollHeight + 'px';
-}
-
-// Chat box toggle and navigation
-let chatBoxContainerDisplay = true;
-let chatBoxListContainerDisplay = false;
-let chatBoxInputInfoDisplay = true;
-let chatDetailsDisplay = true;
-
-const infoTitle = document.querySelector('#info-input .info-header h4');
-const chatBoxIcon = document.querySelector('#chat-icon');
-const chatBoxContainer = document.querySelector('#chat-box');
-const chatBoxFilter = document.querySelector('#chat-box-header');
-const searchChatInput = document.querySelector('#search-chat-input');
-const searchChatIcon = document.querySelector('#search-chat-icon');
-const chatBoxListContainer = document.querySelector('#list-items');
-const chatBoxInputInfo = document.querySelector('#info-input');
-const turnBackButton = document.querySelector('#turn-back-button');
-const continueButton = document.querySelector('#continue-button');
-const chatDetails = document.querySelector('#chat-details');
-const btnX = document.querySelector('#btn-x');
-const detailsBackButton = document.querySelector('#btn-details-back');
-const messageContainer = document.querySelector('#message-container');
-const hsblInput = document.querySelector('#input-shsbl');
-const userNameInput = document.querySelector('#input-username');
-const errorInfoInput = document.querySelector('#error-info-input');
-const btnSendMessage = document.querySelector('#btn-send-message');
-
-// Asign full name to userNameInput
-userNameInput.value = fullName;
-
-// Debounce function để tránh gọi quá nhiều lần
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Scroll handler với debounce
-const handleScroll = debounce(function () {
-    if (messageContainer.scrollTop < 20) {
-        loadMoreMessages();
-    }
-}, 200); // Chờ 200ms sau lần scroll cuối
-
-messageContainer.addEventListener('scroll', handleScroll);
-
-// Scroll handler for chat list infinity scroll
-const handleChatListScroll = debounce(function () {
-    console.log('Scroll chat list:', chatBoxListContainer.scrollTop);
-    const scrollTop = chatBoxListContainer.scrollTop;
-    const scrollHeight = chatBoxListContainer.scrollHeight;
-    const clientHeight = chatBoxListContainer.clientHeight;
-
-    // Load more khi scroll gần đến cuối (còn 100px)
-    if (scrollTop + clientHeight >= scrollHeight - 100) {
-        loadMoreChatList();
-    }
-}, 200);
-
-chatBoxListContainer.addEventListener('scroll', handleChatListScroll);
-
+// ================== VALIDATION FUNCTIONS ==================
 function validateInfoInputs() {
     let isValid = true;
 
@@ -357,9 +346,8 @@ function validateInfoInputs() {
     return isValid;
 }
 
-let contract = '';
 function validateContractId(contractId) {
-    return fetch(`${baseURL}api/chat/execute`)
+    return fetch(`${BASE_URL}api/chat/execute`)
         .then(response => {
             if (!response.ok) {
                 errorInfoInput.textContent = `Mã hợp đồng không tồn tại.`;
@@ -373,6 +361,33 @@ function validateContractId(contractId) {
         });
 }
 
+// ================== EVENT LISTENERS ==================
+// Auto resize textarea
+textarea.addEventListener('input', autoResize, false);
+
+// Scroll handlers
+const handleScroll = debounce(function () {
+    if (messageContainer.scrollTop < SCROLL_THRESHOLD) {
+        loadMoreMessages();
+    }
+}, DEBOUNCE_DELAY);
+
+messageContainer.addEventListener('scroll', handleScroll);
+
+const handleChatListScroll = debounce(function () {
+    console.log('Scroll chat list:', chatBoxListContainer.scrollTop);
+    const scrollTop = chatBoxListContainer.scrollTop;
+    const scrollHeight = chatBoxListContainer.scrollHeight;
+    const clientHeight = chatBoxListContainer.clientHeight;
+
+    if (scrollTop + clientHeight >= scrollHeight - SCROLL_LOAD_MORE_THRESHOLD) {
+        loadMoreChatList();
+    }
+}, DEBOUNCE_DELAY);
+
+chatBoxListContainer.addEventListener('scroll', handleChatListScroll);
+
+// Input validation listeners
 hsblInput.addEventListener('input', function () {
     if (this.value.trim()) {
         this.classList.remove('error');
@@ -385,42 +400,13 @@ userNameInput.addEventListener('input', function () {
     }
 });
 
-// Function to wire click events on chat list items
-function wireChatItemClicks() {
-    const chatBoxListItem = document.querySelectorAll('#list-items li');
-    chatBoxListItem.forEach((item) => {
-        item.addEventListener('click', function () {
-            if (chatBoxInputInfo) {
-                chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
-                chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
-                chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
-
-                chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
-                chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
-
-                const { id } = item.dataset;
-                const name = item.querySelector('.title-item')?.textContent?.trim() || '';
-
-                selectedChat = { id, name };
-                infoTitle.textContent = name || 'Không tìm thấy cuộc trò chuyện!';
-                userNameInput.value = fullName;
-            }
-        });
-    });
-}
-
-// Function to scroll to the bottom of message container
-function scrollToBottom() {
-    if (messageContainer) {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-}
-
+// Display initialization
 chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
 chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
 chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
 chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
 
+// Chat box icon click
 chatBoxIcon.addEventListener('click', function () {
     if (chatBoxContainer) {
         chatListCurrentPage = 1;
@@ -434,6 +420,7 @@ chatBoxIcon.addEventListener('click', function () {
     }
 });
 
+// Close button
 btnX.addEventListener('click', function () {
     if (chatBoxContainer) {
         chatBoxContainerDisplay = true;
@@ -441,11 +428,11 @@ btnX.addEventListener('click', function () {
     }
 });
 
+// Search handlers
 searchChatIcon.addEventListener('click', function () {
     const searchTerm = searchChatInput.value.trim();
     currentSearchTerm = searchTerm;
 
-    // Reset pagination state
     chatListCurrentPage = 1;
     chatListIsLoading = false;
 
@@ -457,7 +444,6 @@ searchChatInput.addEventListener('keypress', function (event) {
         const searchTerm = searchChatInput.value.trim();
         currentSearchTerm = searchTerm;
 
-        // Reset pagination state
         chatListCurrentPage = 1;
         chatListIsLoading = false;
 
@@ -465,6 +451,7 @@ searchChatInput.addEventListener('keypress', function (event) {
     }
 });
 
+// Turn back button
 turnBackButton.addEventListener('click', function () {
     if (chatBoxInputInfo) {
         chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
@@ -481,11 +468,10 @@ turnBackButton.addEventListener('click', function () {
     }
 });
 
+// Continue button
 continueButton.addEventListener('click', async function () {
     if (chatDetails) {
-        if (!validateInfoInputs()
-            // || !(await validateContractId(hsblInput.value.trim()))
-        ) {
+        if (!validateInfoInputs()) {
             return;
         }
 
@@ -498,7 +484,7 @@ continueButton.addEventListener('click', async function () {
 
         // Join group
         connection.invoke("JoinGroupAsync", selectedChat.hsbl).then(() => {
-            console.log(`Đã rời nhóm: ${selectedChat.hsbl}`);
+            console.log(`Đã join nhóm: ${selectedChat.hsbl}`);
         }).catch(err => console.error(err.toString()));
 
         var messages = await loadMessageHistory(selectedChat.hsbl, 1);
@@ -510,11 +496,11 @@ continueButton.addEventListener('click', async function () {
         chatDetailsDisplay = !chatDetailsDisplay;
         chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
 
-        // Scroll to bottom after a short delay to ensure content is rendered
         setTimeout(scrollToBottom, 0);
     }
-})
+});
 
+// Details back button
 detailsBackButton.addEventListener('click', function () {
     if (chatDetails) {
         // Leave group
@@ -525,7 +511,7 @@ detailsBackButton.addEventListener('click', function () {
         // Reset state before go back
         currentPage = 1;
         hasMoreMessages = true;
-        isLoading = false
+        isLoading = false;
         messageContainer.innerHTML = '';
 
         chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
@@ -536,6 +522,7 @@ detailsBackButton.addEventListener('click', function () {
     }
 });
 
+// Send message button
 btnSendMessage.addEventListener('click', async function () {
     const message = document.getElementById('message-input').value;
     console.log('Gửi tin nhắn:', message);
@@ -544,7 +531,6 @@ btnSendMessage.addEventListener('click', async function () {
             await connection.invoke("SendMessageToGroupAsync", selectedChat.hsbl, message, userNameInput.value.trim());
             document.getElementById("message-input").value = "";
 
-            // reset textarea rows
             const textarea = document.getElementById('message-input');
             textarea.style.height = 'auto';
         } catch (err) {
@@ -553,9 +539,48 @@ btnSendMessage.addEventListener('click', async function () {
     }
 });
 
-// SignalR connection setup
+// ================== EMOJI PICKER ==================
+// Tạo picker động (chỉ tạo một lần)
+const picker = document.createElement('emoji-picker');
+
+// Thêm picker vào DOM (dưới message-sending để popup đúng vị trí)
+document.querySelector('.message-sending').appendChild(picker);
+
+// Xử lý chọn emoji → chèn vào textarea
+picker.addEventListener('emoji-click', (event) => {
+    const emoji = event.detail.unicode;
+
+    const start = messageInput.selectionStart;
+    const end = messageInput.selectionEnd;
+    const text = messageInput.value;
+
+    messageInput.value = text.substring(0, start) + emoji + text.substring(end);
+
+    const newPos = start + emoji.length;
+    messageInput.setSelectionRange(newPos, newPos);
+    messageInput.focus();
+
+    picker.classList.remove('show');
+
+    messageInput.dispatchEvent(new Event('input'));
+});
+
+// Toggle hiển thị picker khi click nút emoji
+emojiButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    picker.classList.toggle('show');
+});
+
+// Đóng picker khi click bên ngoài
+document.addEventListener('click', (e) => {
+    if (!picker.contains(e.target) && e.target !== emojiButton) {
+        picker.classList.remove('show');
+    }
+});
+
+// ================== SIGNALR CONNECTION ==================
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${baseURL}chatHub?token=${token}&ePartnerCode=${ePartnerCode}`, {
+    .withUrl(`${BASE_URL}chatHub?token=${token}&ePartnerCode=${ePartnerCode}`, {
         withCredentials: false,
     })
     .configureLogging(signalR.LogLevel.Information)
@@ -565,7 +590,6 @@ const connection = new signalR.HubConnectionBuilder()
 // Nhận tin nhắn từ server
 connection.on("ReceiveGroupMessage", (data) => {
     console.log('Tin nhắn nhận được:', data);
-    // Check if message come from the current user or not
     const isMe = userId === data.ma_doi_tac_nsd;
     const msg = document.createElement("div");
     msg.classList.add(isMe ? 'me' : 'partner');
@@ -593,10 +617,11 @@ connection.on("ReceiveGroupMessage", (data) => {
     scrollToBottom();
 });
 
-// Kết nối
+// Start connection
 connection
     .start()
     .then(() => {
-        console.log("Kết nối thành công!");
+        console.log("Kết nối SignalR thành công!");
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error("Lỗi kết nối SignalR:", err));
+// ================== END OF FILE ==================

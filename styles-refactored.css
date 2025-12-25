@@ -1,0 +1,619 @@
+/* ================================================================================
+   CHAT SDK - REFACTORED STYLESHEET
+   ================================================================================
+   Organization: Global Reset → Container Layout → Components → Responsive Design
+   ================================================================================ */
+
+/* ================================================================================
+   GLOBAL RESET & BASE STYLES
+   ================================================================================ */
+html,
+body,
+* {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* ================================================================================
+   CHAT CONTAINER & MAIN BOX LAYOUT
+   ================================================================================ */
+.chat-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+}
+
+#chat-icon {
+  display: flex;
+  width: 60px;
+  height: 60px;
+  justify-content: center;
+  align-items: center;
+}
+
+#chat-box {
+  position: absolute;
+  top: -78vh;
+  left: 42px;
+  height: 80vh;
+  width: 500px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(63, 63, 63, 0.5);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chat-box-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffffff;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ================================================================================
+   CHAT HEADER & FILTER
+   ================================================================================ */
+#chat-box-header {
+  background-color: #ffffffff;
+  border-bottom: 1px solid #e7e7e7ff;
+  box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
+  padding: 10px;
+}
+
+.chat-filter {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  padding: 5px;
+  gap: 10px;
+  border: 1px solid #9e9e9eff;
+  width: 80%;
+  margin: 0 auto;
+  border-radius: 220px;
+  background-color: #eeeeeeff;
+  padding-left: 15px;
+}
+
+.chat-filter svg {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.chat-filter input {
+  border: none;
+  background-color: inherit;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.chat-filter input:focus {
+  outline: none;
+  background-color: inherit;
+}
+
+.chat-filter input:-internal-autofill-selected {
+  background-color: #eeeeeeff !important;
+}
+
+/* ================================================================================
+   CHAT LIST & LIST ITEMS
+   ================================================================================ */
+#list-items {
+  position: relative;
+  background-color: #ffffffff;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-y: auto;
+}
+
+#list-items ul {
+  list-style-type: none;
+}
+
+#list-items ul li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#list-items ul li:hover {
+  background-color: #f0f0f0;
+}
+
+.logo-item {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: #ffffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid #ccc;
+}
+
+.readed {
+  color: gray;
+}
+
+/* ================================================================================
+   CHAT INFO INPUT (User Information Dialog)
+   ================================================================================ */
+#info-input {
+  background-color: #ffffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+#info-input .info-header {
+  padding: 1% 3%;
+  background-color: #dadadaff;
+  border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(109, 109, 109, 0.1);
+}
+
+#info-input input {
+  width: 70%;
+  padding: 10px 10px;
+  border: 1px solid #ccc;
+  border-radius: 50px;
+  font-size: 1rem;
+}
+
+#info-input input:focus {
+  outline: none;
+}
+
+#info-input input.error {
+  border: 2px solid #ff4444;
+  animation: shake 0.3s;
+}
+
+#info-input-buttons {
+  display: flex;
+  gap: 0.825rem;
+}
+
+#info-input #turn-back-button,
+#continue-button {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 50px;
+  background-color: #aac96f;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#info-input svg {
+  fill: white;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+#info-input #error-info-input {
+  color: red;
+  font-size: 1rem;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* ================================================================================
+   CHAT DETAILS & MESSAGE CONTAINER
+   ================================================================================ */
+#chat-details {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#chat-details .details-header {
+  padding: 12px 8px;
+  display: flex;
+  gap: 0.825rem;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  background-color: #ffffffff;
+  border-bottom: 1px solid #e7e7e7ff;
+  box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
+}
+
+.details-header .title-header {
+  background-color: #fff;
+  color: black;
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-weight: 600;
+}
+
+.details-header #btn-details-back {
+  background-color: #e0e0e0ff;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: black;
+  fill: black;
+  gap: 0.5rem;
+  white-space: nowrap;
+  padding: 0.25rem 0.55rem;
+}
+
+.details-header #btn-x {
+  background-color: #e0e0e0ff;
+  border: none;
+  border-radius: 50px;
+  height: 28px;
+  width: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: black;
+  fill: black;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.details-header button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.details-header #btn-details-back:hover,
+#btn-x:hover {
+  background-color: #cececeff;
+}
+
+#message-container {
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* ================================================================================
+   MESSAGE STYLING
+   ================================================================================ */
+.message {
+  display: flex;
+}
+
+.message p {
+  white-space: pre-wrap;
+  max-width: 80%;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 0;
+}
+
+.partner .message {
+  margin-left: 10%;
+  justify-content: flex-start;
+}
+
+.me .message {
+  margin-right: 10%;
+  justify-content: flex-end;
+}
+
+.partner .message p {
+  background-color: rgb(240, 240, 240);
+}
+
+.me .message p {
+  background-color: rgba(75, 75, 218, 1);
+  color: white;
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #cccccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.info .message-time {
+  font-size: 0.725rem;
+  color: gray;
+  font-style: italic;
+}
+
+.partner .info {
+  justify-content: flex-start;
+}
+
+.me .info {
+  justify-content: flex-end;
+}
+
+.partner .message-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.me .message-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* ================================================================================
+   MESSAGE INPUT & SENDING
+   ================================================================================ */
+.message-sending {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  gap: 10px;
+  border-top: 1px solid #e7e7e7ff;
+}
+
+.message-sending .message-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #e0e0e0ff;
+  border-radius: 50px;
+  padding: 10px 20px;
+  overflow-y: hidden;
+}
+
+.message-sending #message-input {
+  flex-grow: 1;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  font-size: 16px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.message-sending #message-input:focus {
+  outline: none;
+}
+
+.message-sending #btn-send-message {
+  background-color: #5b5bdfff;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.message-sending #btn-send-message svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+.message-sending button:hover {
+  background-color: #4b4bda;
+}
+
+/* ================================================================================
+   EMOJI PICKER STYLING
+   ================================================================================ */
+#emoji-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#emoji-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+emoji-picker {
+  position: absolute;
+  bottom: 70px;
+  right: 15px;
+  display: none;
+}
+
+emoji-picker.show {
+  display: block;
+}
+
+/* ================================================================================
+   RESPONSIVE DESIGN - TABLET (768px and below)
+   ================================================================================ */
+@media (max-width: 768px) {
+  .chat-container {
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  #chat-icon {
+    width: 55px;
+    height: 55px;
+  }
+
+  #chat-box {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80vw;
+    max-width: 500px;
+    height: 85vh;
+    top: auto;
+    bottom: 75px;
+  }
+
+  .chat-filter {
+    width: 90%;
+  }
+
+  .chat-filter input {
+    font-size: 0.95rem;
+  }
+
+  #info-input input {
+    width: 80%;
+    font-size: 1rem;
+  }
+
+  #info-input #turn-back-button,
+  #info-input #continue-button {
+    padding: 8px 16px;
+    font-size: 0.95rem;
+  }
+
+  .message p {
+    max-width: 85%;
+    font-size: 0.95rem;
+  }
+
+  .message-sending .message-content {
+    padding: 8px 15px;
+  }
+
+  .message-sending #message-input {
+    font-size: 0.95rem;
+  }
+
+  .details-header button {
+    padding: 0.2rem 0.45rem;
+  }
+
+  .details-header #btn-x {
+    height: 26px;
+    width: 26px;
+  }
+}
+
+/* ================================================================================
+   RESPONSIVE DESIGN - MOBILE (480px and below)
+   ================================================================================ */
+@media (max-width: 480px) {
+  #chat-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  #chat-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  #chat-box {
+    width: 98vw;
+    height: 90vh;
+    bottom: 65px;
+  }
+
+  .chat-filter {
+    width: 95%;
+    padding-left: 10px;
+  }
+
+  .chat-filter input {
+    font-size: 0.9rem;
+  }
+
+  #info-input h3 {
+    font-size: 1.2rem;
+  }
+
+  #info-input input {
+    width: 85%;
+    font-size: 0.95rem;
+    padding: 8px 10px;
+  }
+
+  .message p {
+    max-width: 80%;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .info h5 {
+    font-size: 0.9rem;
+  }
+
+  .message-sending {
+    padding: 8px;
+  }
+
+  .message-sending #btn-send-message {
+    padding: 8px;
+  }
+}
+
+/* ================================================================================ */
+/* END OF STYLESHEET */
+/* ================================================================================ */
