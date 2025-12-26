@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <title>Trang web của bạn</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@minhnd1010/chat-widget@1.0.0/index.js"></script>
   </head>
   <body>
     <h1>Chào mừng đến với signalR!</h1>
 
     <!-- Nhúng SDK -->
-    <script src="chat-sdk.js"></script>
     <chat-widget
-      position="bottom-left"
-      hub-url="https://localhost:7299/chatHub"
+    position="bottom-left"
+    base-url="https://localhost:7004/"
     ></chat-widget>
   </body>
 </html>
