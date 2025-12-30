@@ -1,62 +1,66 @@
 class ChatWidget extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this.connection = null;
   }
 
   async connectedCallback() {
     this.render();
 
-    // Đảm bảo SignalR đã được tải trước khi chạy initLogic
+    // Ensure SignalR is loaded
     if (typeof signalR === "undefined") {
       await this.loadSignalR();
     }
 
     this.initLogic();
 
-    if (!customElements.get('emoji-picker')) {
-      // Nếu chưa load thư viện → load từ CDN
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
+    if (!customElements.get("emoji-picker")) {
+      // If not loaded yet, load the script
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src =
+        "https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js";
       script.onload = () => {
-        console.log('emoji-picker-element loaded');
-        // Sau khi load xong, khởi tạo picker (nếu cần)
+        console.log("emoji-picker-element loaded");
+        // After loading, initialize the emoji picker
         this.setupEmojiPickerAfterLoad();
       };
-      script.onerror = () => console.error('Failed to load emoji-picker-element');
+      script.onerror = () =>
+        console.error("Failed to load emoji-picker-element");
       document.head.appendChild(script);
     } else {
-      // Nếu đã load rồi (trang có nhiều widget) → khởi tạo luôn
+      // If already loaded (multiple widgets on the page) → initialize immediately
       this.setupEmojiPickerAfterLoad();
     }
   }
 
   render() {
-    const position = this.getAttribute('position') || 'bottom-left';
+    // Determine position styles based on attributes
+    let position = "";
+    const top = this.getAttribute("top");
+    const left = this.getAttribute("left");
+    const bottom = this.getAttribute("bottom");
+    const right = this.getAttribute("right");
 
-    let containerStyles = 'bottom: 20px; left: 20px;';
-    let boxStyles = 'top: -78vh; left: 42px;';
-
-    switch (position) {
-      case 'bottom-right':
-        containerStyles = 'bottom: 20px; right: 20px; left: auto;';
-        boxStyles = 'top: -78vh; right: 42px; left: auto; transform: translateX(-100%);';
-        break;
-      case 'top-left':
-        containerStyles = 'top: 20px; left: 20px; bottom: auto;';
-        boxStyles = 'bottom: 80px; top: auto; left: 42px; transform: translateY(100%);';
-        break;
-      case 'top-right':
-        containerStyles = 'top: 20px; right: 20px; left: auto; bottom: auto;';
-        boxStyles = 'bottom: 80px; top: auto; right: 42px; left: auto; transform: translateX(-100%) translateY(100%);';
-        break;
-      default:
-      // bottom-left
+    if (top) {
+      position += `top: ${top};`;
+    }
+    if (left) {
+      position += `left: ${left};`;
+    }
+    if (bottom) {
+      position += `bottom: ${bottom};`;
+    }
+    if (right) {
+      position += `right: ${right};`;
     }
 
-    const template = document.createElement('template');
+    if (!position) {
+      position = `bottom: 20px; left: 20px;`;
+    }
+
+    const template = document.createElement("template");
     template.innerHTML = `
       <style>
         * {
@@ -71,8 +75,7 @@ class ChatWidget extends HTMLElement {
           ================================================================================ */
         .chat-container {
           position: fixed;
-          bottom: 20px;
-          left: 20px;
+          ${position}
         }
 
         #chat-icon {
@@ -462,7 +465,7 @@ class ChatWidget extends HTMLElement {
           align-items: center;
           background-color: #e0e0e0ff;
           border-radius: 50px;
-          padding: 10px 20px;
+          padding: 8px 20px;
           overflow-y: hidden;
         }
 
@@ -505,14 +508,37 @@ class ChatWidget extends HTMLElement {
         }
 
         /* ================================================================================
+          File attach styling
+          ================================================================================ */
+        .file-attach {
+          background: rgb(224, 224, 224);
+          border: none;
+          cursor: pointer;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+        }
+
+        .file-attach:hover {
+          background-color: rgba(201, 201, 201, 1);
+        }
+
+        .file-attach svg {
+          width: 26px;
+          height: 26px;
+          fill: #5b5bdfff;
+        }
+
+        /* ================================================================================
           EMOJI PICKER STYLING
           ================================================================================ */
         #emoji-button {
           background: none;
           border: none;
-          font-size: 24px;
+          font-size: 18px;
           cursor: pointer;
-          padding: 8px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -521,6 +547,12 @@ class ChatWidget extends HTMLElement {
 
         #emoji-button:hover {
           background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        #emoji-button svg {
+          width: 25px;
+          height: 25px;
+          fill: #5b5bdfff;
         }
 
         emoji-picker {
@@ -755,6 +787,13 @@ class ChatWidget extends HTMLElement {
 
             <!-- Message input -->
             <div class="message-sending">
+              <div class="file-attach" title="Đính kèm file">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                  <path
+                    d="M352 128C352 110.3 337.7 96 320 96C302.3 96 288 110.3 288 128L288 288L128 288C110.3 288 96 302.3 96 320C96 337.7 110.3 352 128 352L288 352L288 512C288 529.7 302.3 544 320 544C337.7 544 352 529.7 352 512L352 352L512 352C529.7 352 544 337.7 544 320C544 302.3 529.7 288 512 288L352 288L352 128z"
+                  />
+                </svg>
+              </div>
               <div class="message-content">
                 <textarea
                   id="message-input"
@@ -762,7 +801,13 @@ class ChatWidget extends HTMLElement {
                   placeholder="Nhập tin nhắn..."
                 ></textarea>
               </div>
-              <button id="emoji-button">😊</button>
+              <button id="emoji-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                  <path
+                    d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM229.4 385.9C249.8 413.9 282.8 432 320 432C357.2 432 390.2 413.9 410.6 385.9C418.4 375.2 433.4 372.8 444.1 380.6C454.8 388.4 457.2 403.4 449.4 414.1C420.3 454 373.2 480 320 480C266.8 480 219.7 454 190.6 414.1C182.8 403.4 185.2 388.4 195.9 380.6C206.6 372.8 221.6 375.2 229.4 385.9zM208 272C208 254.3 222.3 240 240 240C257.7 240 272 254.3 272 272C272 289.7 257.7 304 240 304C222.3 304 208 289.7 208 272zM400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304C382.3 304 368 289.7 368 272C368 254.3 382.3 240 400 240z"
+                  />
+                </svg>
+              </button>
               <button id="btn-send-message">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                   <path
@@ -780,28 +825,23 @@ class ChatWidget extends HTMLElement {
   }
 
   initLogic() {
-    // Toàn bộ logic từ script.js, điều chỉnh querySelector thành shadowRoot
     const shadowRoot = this.shadowRoot;
 
     // ================== CONFIGURATION ==================
-    const BASE_URL = this.getAttribute('base-url');
+    const BASE_URL = this.getAttribute("base-url");
     const PAGE_SIZE = 10;
     const SCROLL_THRESHOLD = 20;
     const SCROLL_LOAD_MORE_THRESHOLD = 100;
     const DEBOUNCE_DELAY = 200;
 
     // ================== USER INPUT ==================
-    let token = prompt("Nhập access token của bạn:", "");
-    if (!token) token = "Anonymous";
+    let token = this.getAttribute("token");
 
-    let userId = prompt("Nhập mã của bạn:", "");
-    if (!userId) userId = "Anonymous";
+    let userId = this.getAttribute("ma-doi-tac-nsd");
 
-    let fullName = prompt("Nhập tên đầy đủ của bạn:");
-    if (!fullName) fullName = "Khách hàng";
+    let fullName = this.getAttribute("ten");
 
-    let ePartnerCode = prompt("Nhập ePartnerCode của bạn:", "BENH_VIEN");
-    if (!ePartnerCode) ePartnerCode = "PORTAL";
+    let ePartnerCode = this.getAttribute("e-partner-code");
 
     // ================== STATE MANAGEMENT ==================
     let selectedChat = null;
@@ -821,35 +861,35 @@ class ChatWidget extends HTMLElement {
 
     // ================== DOM ELEMENTS ==================
     const listEl = shadowRoot.querySelector("#list-items ul");
-    const infoTitle = shadowRoot.querySelector('#info-input .info-header h4');
-    const chatBoxIcon = shadowRoot.querySelector('#chat-icon');
-    const chatBoxContainer = shadowRoot.querySelector('#chat-box');
-    const chatBoxFilter = shadowRoot.querySelector('#chat-box-header');
-    const searchChatInput = shadowRoot.querySelector('#search-chat-input');
-    const searchChatIcon = shadowRoot.querySelector('#search-chat-icon');
-    const chatBoxListContainer = shadowRoot.querySelector('#list-items');
-    const chatBoxInputInfo = shadowRoot.querySelector('#info-input');
-    const turnBackButton = shadowRoot.querySelector('#turn-back-button');
-    const continueButton = shadowRoot.querySelector('#continue-button');
-    const chatDetails = shadowRoot.querySelector('#chat-details');
-    const btnX = shadowRoot.querySelector('#btn-x');
-    const detailsBackButton = shadowRoot.querySelector('#btn-details-back');
-    const messageContainer = shadowRoot.querySelector('#message-container');
-    const hsblInput = shadowRoot.querySelector('#input-shsbl');
-    const userNameInput = shadowRoot.querySelector('#input-username');
-    const errorInfoInput = shadowRoot.querySelector('#error-info-input');
-    const btnSendMessage = shadowRoot.querySelector('#btn-send-message');
-    const textarea = shadowRoot.getElementById('message-input');
-    const emojiButton = shadowRoot.getElementById('emoji-button');
-    const messageInput = shadowRoot.getElementById('message-input');
+    const infoTitle = shadowRoot.querySelector("#info-input .info-header h4");
+    const chatBoxIcon = shadowRoot.querySelector("#chat-icon");
+    const chatBoxContainer = shadowRoot.querySelector("#chat-box");
+    const chatBoxFilter = shadowRoot.querySelector("#chat-box-header");
+    const searchChatInput = shadowRoot.querySelector("#search-chat-input");
+    const searchChatIcon = shadowRoot.querySelector("#search-chat-icon");
+    const chatBoxListContainer = shadowRoot.querySelector("#list-items");
+    const chatBoxInputInfo = shadowRoot.querySelector("#info-input");
+    const turnBackButton = shadowRoot.querySelector("#turn-back-button");
+    const continueButton = shadowRoot.querySelector("#continue-button");
+    const chatDetails = shadowRoot.querySelector("#chat-details");
+    const btnX = shadowRoot.querySelector("#btn-x");
+    const detailsBackButton = shadowRoot.querySelector("#btn-details-back");
+    const messageContainer = shadowRoot.querySelector("#message-container");
+    const hsblInput = shadowRoot.querySelector("#input-shsbl");
+    const userNameInput = shadowRoot.querySelector("#input-username");
+    const errorInfoInput = shadowRoot.querySelector("#error-info-input");
+    const btnSendMessage = shadowRoot.querySelector("#btn-send-message");
+    const textarea = shadowRoot.getElementById("message-input");
+    const emojiButton = shadowRoot.getElementById("emoji-button");
+    const messageInput = shadowRoot.getElementById("message-input");
 
     userNameInput.value = fullName;
 
     // ================== UTILITY FUNCTIONS ==================
     function parseCustomDateString(str) {
       // Expected format: dd/MM/yyyy HH:mm:ss
-      const [date, time] = str.split(' ');
-      const [day, month, year] = date.split('/');
+      const [date, time] = str.split(" ");
+      const [day, month, year] = date.split("/");
       return new Date(`${year}-${month}-${day}T${time}`);
     }
 
@@ -866,8 +906,8 @@ class ChatWidget extends HTMLElement {
     }
 
     function autoResize() {
-      this.style.height = 'auto';
-      this.style.height = this.scrollHeight + 'px';
+      this.style.height = "auto";
+      this.style.height = this.scrollHeight + "px";
     }
 
     function scrollToBottom() {
@@ -879,12 +919,14 @@ class ChatWidget extends HTMLElement {
     // ================== CHAT LIST FUNCTIONS ==================
     function renderChatList(items, append = false) {
       const htmlContent = items
-        .map(item => `
+        .map(
+          (item) => `
                 <li data-id="${item.MA}">
                     <img class="logo-item" src="${item.LINK_LOGO}" alt="Logo" />
                     <h4 class="title-item">${item.TEN}</h4>
                 </li>
-            `)
+            `
+        )
         .join("");
 
       if (append) {
@@ -898,8 +940,12 @@ class ChatWidget extends HTMLElement {
       const scrollHeight = chatBoxListContainer.scrollHeight;
       const clientHeight = chatBoxListContainer.clientHeight;
 
-      if (scrollHeight <= clientHeight && chatListHasMore && !chatListIsLoading) {
-        console.log('Danh sách chưa đủ để scroll, load thêm...');
+      if (
+        scrollHeight <= clientHeight &&
+        chatListHasMore &&
+        !chatListIsLoading
+      ) {
+        console.log("Danh sách chưa đủ để scroll, load thêm...");
         await loadMoreChatList();
         setTimeout(() => ensureChatListFilled(), 100);
       }
@@ -910,7 +956,7 @@ class ChatWidget extends HTMLElement {
         const body = {
           trang: page,
           so_dong: PAGE_SIZE,
-          nd_tim: searchTerm || ""
+          nd_tim: searchTerm || "",
         };
 
         const header = {
@@ -919,17 +965,20 @@ class ChatWidget extends HTMLElement {
         };
 
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
-          method: 'POST',
+          method: "POST",
           headers: header,
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         });
 
-        if (!response.ok) throw new Error('Failed to fetch chat list');
+        if (!response.ok) throw new Error("Failed to fetch chat list");
 
         const data = await response.json();
 
         // Check if there are more items
-        if (data.data.length === 0 || data.data.length >= data.output.tong_so_dong) {
+        if (
+          data.data.length === 0 ||
+          data.data.length >= data.output.tong_so_dong
+        ) {
           chatListHasMore = false;
         } else {
           chatListHasMore = true;
@@ -938,16 +987,17 @@ class ChatWidget extends HTMLElement {
         renderChatList(data.data, append);
         wireChatItemClicks();
 
-        // Kiểm tra và load thêm nếu cần (chỉ ở lần load đầu tiên)
+        // If first page and not appending, ensure list is filled
         if (page === 1 && !append) {
           setTimeout(() => ensureChatListFilled(), 50);
         }
 
         return data.data.length;
       } catch (error) {
-        console.error('Error loading chat list:', error);
+        console.error("Error loading chat list:", error);
         if (!append) {
-          listEl.innerHTML = '<li style="padding: 20px; text-align: center;">Không thể tải danh sách chat</li>';
+          listEl.innerHTML =
+            '<li style="padding: 20px; text-align: center;">Không thể tải danh sách chat</li>';
         }
         return 0;
       }
@@ -962,14 +1012,18 @@ class ChatWidget extends HTMLElement {
 
       try {
         chatListCurrentPage++;
-        const count = await loadChatList(currentSearchTerm, chatListCurrentPage, true);
+        const count = await loadChatList(
+          currentSearchTerm,
+          chatListCurrentPage,
+          true
+        );
 
         if (count === 0) {
           chatListHasMore = false;
-          console.log('Đã tải hết danh sách chat');
+          console.log("Đã tải hết danh sách chat");
         }
       } catch (error) {
-        console.error('Lỗi khi load thêm chat list:', error);
+        console.error("Lỗi khi load thêm chat list:", error);
         chatListCurrentPage--;
       } finally {
         chatListIsLoading = false;
@@ -977,22 +1031,29 @@ class ChatWidget extends HTMLElement {
     }
 
     function wireChatItemClicks() {
-      const chatBoxListItem = shadowRoot.querySelectorAll('#list-items li');
+      const chatBoxListItem = shadowRoot.querySelectorAll("#list-items li");
       chatBoxListItem.forEach((item) => {
-        item.addEventListener('click', function () {
+        item.addEventListener("click", function () {
           if (chatBoxInputInfo) {
             chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
-            chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
-            chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+            chatBoxListContainer.style.display = chatBoxListContainerDisplay
+              ? "none"
+              : "flex";
+            chatBoxFilter.style.display = chatBoxListContainerDisplay
+              ? "none"
+              : "flex";
 
             chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
-            chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+            chatBoxInputInfo.style.display = chatBoxInputInfoDisplay
+              ? "none"
+              : "flex";
 
             const { id } = item.dataset;
-            const name = item.querySelector('.title-item')?.textContent?.trim() || '';
+            const name =
+              item.querySelector(".title-item")?.textContent?.trim() || "";
 
             selectedChat = { id, name };
-            infoTitle.textContent = name || 'Không tìm thấy cuộc trò chuyện!';
+            infoTitle.textContent = name || "Không tìm thấy cuộc trò chuyện!";
             userNameInput.value = fullName;
           }
         });
@@ -1005,7 +1066,7 @@ class ChatWidget extends HTMLElement {
         const body = {
           trang: page,
           so_dong: PAGE_SIZE,
-          nhom: groupName || ""
+          nhom: groupName || "",
         };
 
         const header = {
@@ -1014,23 +1075,23 @@ class ChatWidget extends HTMLElement {
         };
 
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
-          method: 'POST',
+          method: "POST",
           headers: header,
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         });
 
-        if (!response.ok) throw new Error('Failed to fetch chat list');
+        if (!response.ok) throw new Error("Failed to fetch chat list");
 
         const data = await response.json();
 
         // Sort messages by NGAY_GUI ascending
-        console.log('Loaded messages:', data.data);
+        console.log("Loaded messages:", data.data);
         const sortedMessages = data.data.sort((a, b) => {
           const dateA = parseCustomDateString(a.NGAY_GUI);
           const dateB = parseCustomDateString(b.NGAY_GUI);
           return dateA - dateB;
         });
-        console.log('Sorted messages:', sortedMessages);
+        console.log("Sorted messages:", sortedMessages);
 
         return sortedMessages;
       } catch {
@@ -1044,22 +1105,22 @@ class ChatWidget extends HTMLElement {
       for (const msg of messages) {
         const isMe = userId === msg.MA_DOI_TAC_NSD;
         const msgDiv = document.createElement("div");
-        msgDiv.classList.add(isMe ? 'me' : 'partner');
+        msgDiv.classList.add(isMe ? "me" : "partner");
         msgDiv.innerHTML = `
             <div class="info">
-                ${isMe ?
-            `<div class="message-title">
+                ${
+                  isMe
+                    ? `<div class="message-title">
                   <h5>${msg.TEN}</h5>
                   <p class="message-time">${msg.NGAY_GUI}</p>
                 </div>
                 <img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />`
-            :
-            `<img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />
+                    : `<img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />
                 <div class="message-title">
                   <h5>${msg.TEN}</h5>
                   <p class="message-time">${msg.NGAY_GUI}</p>
                 </div>`
-          }
+                }
             </div>
             <div class="message">
                 <p>${msg.NOI_DUNG_TIN_NHAN}</p>
@@ -1087,21 +1148,24 @@ class ChatWidget extends HTMLElement {
 
       try {
         currentPage++;
-        const messages = await loadMessageHistory(selectedChat.hsbl, currentPage);
+        const messages = await loadMessageHistory(
+          selectedChat.hsbl,
+          currentPage
+        );
 
         if (messages.length === 0) {
           hasMoreMessages = false;
-          console.log('Đã tải hết tin nhắn');
+          console.log("Đã tải hết tin nhắn");
           return;
         }
 
         await appendMessageHistory(messages, true);
 
         const newScrollHeight = messageContainer.scrollHeight;
-        messageContainer.scrollTop = newScrollHeight - oldScrollHeight + oldScrollTop;
-
+        messageContainer.scrollTop =
+          newScrollHeight - oldScrollHeight + oldScrollTop;
       } catch (error) {
-        console.error('Lỗi khi load thêm tin nhắn:', error);
+        console.error("Lỗi khi load thêm tin nhắn:", error);
         currentPage--;
       } finally {
         isLoading = false;
@@ -1113,17 +1177,17 @@ class ChatWidget extends HTMLElement {
       let isValid = true;
 
       if (!hsblInput.value.trim()) {
-        hsblInput.classList.add('error');
+        hsblInput.classList.add("error");
         isValid = false;
       } else {
-        hsblInput.classList.remove('error');
+        hsblInput.classList.remove("error");
       }
 
       if (!userNameInput.value.trim()) {
-        userNameInput.classList.add('error');
+        userNameInput.classList.add("error");
         isValid = false;
       } else {
-        userNameInput.classList.remove('error');
+        userNameInput.classList.remove("error");
       }
 
       return isValid;
@@ -1131,7 +1195,7 @@ class ChatWidget extends HTMLElement {
 
     function validateContractId(contractId) {
       return fetch(`${BASE_URL}api/chat/execute`)
-        .then(response => {
+        .then((response) => {
           if (!response.ok) {
             errorInfoInput.textContent = `Mã hợp đồng không tồn tại.`;
             return false;
@@ -1146,7 +1210,7 @@ class ChatWidget extends HTMLElement {
 
     // ================== EVENT LISTENERS ==================
     // Auto resize textarea
-    textarea.addEventListener('input', autoResize, false);
+    textarea.addEventListener("input", autoResize, false);
 
     // Scroll handlers
     const handleScroll = debounce(function () {
@@ -1155,64 +1219,71 @@ class ChatWidget extends HTMLElement {
       }
     }, DEBOUNCE_DELAY);
 
-    messageContainer.addEventListener('scroll', handleScroll);
+    messageContainer.addEventListener("scroll", handleScroll);
 
     const handleChatListScroll = debounce(function () {
-      console.log('Scroll chat list:', chatBoxListContainer.scrollTop);
+      console.log("Scroll chat list:", chatBoxListContainer.scrollTop);
       const scrollTop = chatBoxListContainer.scrollTop;
       const scrollHeight = chatBoxListContainer.scrollHeight;
       const clientHeight = chatBoxListContainer.clientHeight;
 
-      if (scrollTop + clientHeight >= scrollHeight - SCROLL_LOAD_MORE_THRESHOLD) {
+      if (
+        scrollTop + clientHeight >=
+        scrollHeight - SCROLL_LOAD_MORE_THRESHOLD
+      ) {
         loadMoreChatList();
       }
     }, DEBOUNCE_DELAY);
 
-    chatBoxListContainer.addEventListener('scroll', handleChatListScroll);
+    chatBoxListContainer.addEventListener("scroll", handleChatListScroll);
 
     // Input validation listeners
-    hsblInput.addEventListener('input', function () {
+    hsblInput.addEventListener("input", function () {
       if (this.value.trim()) {
-        this.classList.remove('error');
+        this.classList.remove("error");
       }
     });
 
-    userNameInput.addEventListener('input', function () {
+    userNameInput.addEventListener("input", function () {
       if (this.value.trim()) {
-        this.classList.remove('error');
+        this.classList.remove("error");
       }
     });
 
     // Display initialization
-    chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
-    chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
-    chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
-    chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
+    chatBoxContainer.style.display = chatBoxContainerDisplay ? "none" : "flex";
+    chatBoxListContainer.style.display = chatBoxListContainerDisplay
+      ? "none"
+      : "flex";
+    chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? "none" : "flex";
+    chatDetails.style.display = chatDetailsDisplay ? "none" : "flex";
 
     // Chat box icon click
-    chatBoxIcon.addEventListener('click', function () {
+    chatBoxIcon.addEventListener("click", function () {
       if (chatBoxContainer) {
         chatListCurrentPage = 1;
         chatListIsLoading = false;
         currentSearchTerm = "";
-        searchChatInput.value = '';
+        searchChatInput.value = "";
 
         loadChatList();
         chatBoxContainerDisplay = !chatBoxContainerDisplay;
-        chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
+        chatBoxContainer.style.display = chatBoxContainerDisplay
+          ? "none"
+          : "flex";
       }
     });
 
     // Close button
-    btnX.addEventListener('click', function () {
+    btnX.addEventListener("click", function () {
       if (chatBoxContainer) {
         chatBoxContainerDisplay = true;
-        chatBoxContainer.style.display = 'none';
+        chatBoxContainer.style.display = "none";
       }
     });
 
     // Search handlers
-    searchChatIcon.addEventListener('click', function () {
+    searchChatIcon.addEventListener("click", function () {
       const searchTerm = searchChatInput.value.trim();
       currentSearchTerm = searchTerm;
 
@@ -1222,8 +1293,8 @@ class ChatWidget extends HTMLElement {
       loadChatList(currentSearchTerm);
     });
 
-    searchChatInput.addEventListener('keypress', function (event) {
-      if (event.key === 'Enter') {
+    searchChatInput.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
         const searchTerm = searchChatInput.value.trim();
         currentSearchTerm = searchTerm;
 
@@ -1235,24 +1306,30 @@ class ChatWidget extends HTMLElement {
     });
 
     // Turn back button
-    turnBackButton.addEventListener('click', function () {
+    turnBackButton.addEventListener("click", function () {
       if (chatBoxInputInfo) {
         chatBoxListContainerDisplay = !chatBoxListContainerDisplay;
-        chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
-        chatBoxFilter.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
+        chatBoxListContainer.style.display = chatBoxListContainerDisplay
+          ? "none"
+          : "flex";
+        chatBoxFilter.style.display = chatBoxListContainerDisplay
+          ? "none"
+          : "flex";
 
         chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
-        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay
+          ? "none"
+          : "flex";
 
-        userNameInput.classList.remove('error');
-        hsblInput.classList.remove('error');
-        errorInfoInput.textContent = '';
-        hsblInput.value = '';
+        userNameInput.classList.remove("error");
+        hsblInput.classList.remove("error");
+        errorInfoInput.textContent = "";
+        hsblInput.value = "";
       }
     });
 
     // Continue button
-    continueButton.addEventListener('click', async function () {
+    continueButton.addEventListener("click", async function () {
       if (chatDetails) {
         if (!validateInfoInputs()) {
           return;
@@ -1263,59 +1340,74 @@ class ChatWidget extends HTMLElement {
           selectedChat.userName = userNameInput.value.trim();
         }
 
-        errorInfoInput.textContent = '';
+        errorInfoInput.textContent = "";
 
         // Join group
-        connection.invoke("JoinGroupAsync", selectedChat.hsbl).then(() => {
-          console.log(`Đã join nhóm: ${selectedChat.hsbl}`);
-        }).catch(err => console.error(err.toString()));
+        connection
+          .invoke("JoinGroupAsync", selectedChat.hsbl)
+          .then(() => {
+            console.log(`Đã join nhóm: ${selectedChat.hsbl}`);
+          })
+          .catch((err) => console.error(err.toString()));
 
         var messages = await loadMessageHistory(selectedChat.hsbl, 1);
         await appendMessageHistory(messages);
 
         chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
-        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay
+          ? "none"
+          : "flex";
 
         chatDetailsDisplay = !chatDetailsDisplay;
-        chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
+        chatDetails.style.display = chatDetailsDisplay ? "none" : "flex";
 
         setTimeout(scrollToBottom, 0);
       }
     });
 
     // Details back button
-    detailsBackButton.addEventListener('click', function () {
+    detailsBackButton.addEventListener("click", function () {
       if (chatDetails) {
         // Leave group
-        connection.invoke("RemoveFromGroupAsync", selectedChat.hsbl).then(() => {
-          console.log(`Đã rời nhóm: ${selectedChat.hsbl}`);
-        }).catch(err => console.error(err.toString()));
+        connection
+          .invoke("RemoveFromGroupAsync", selectedChat.hsbl)
+          .then(() => {
+            console.log(`Đã rời nhóm: ${selectedChat.hsbl}`);
+          })
+          .catch((err) => console.error(err.toString()));
 
         // Reset state before go back
         currentPage = 1;
         hasMoreMessages = true;
         isLoading = false;
-        messageContainer.innerHTML = '';
+        messageContainer.innerHTML = "";
 
         chatBoxInputInfoDisplay = !chatBoxInputInfoDisplay;
-        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
+        chatBoxInputInfo.style.display = chatBoxInputInfoDisplay
+          ? "none"
+          : "flex";
 
         chatDetailsDisplay = !chatDetailsDisplay;
-        chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
+        chatDetails.style.display = chatDetailsDisplay ? "none" : "flex";
       }
     });
 
     // Send message button
-    btnSendMessage.addEventListener('click', async function () {
-      const message = shadowRoot.getElementById('message-input').value;
-      console.log('Gửi tin nhắn:', message);
+    btnSendMessage.addEventListener("click", async function () {
+      const message = shadowRoot.getElementById("message-input").value;
+      console.log("Gửi tin nhắn:", message);
       if (message) {
         try {
-          await connection.invoke("SendMessageToGroupAsync", selectedChat.hsbl, message, userNameInput.value.trim());
+          await connection.invoke(
+            "SendMessageToGroupAsync",
+            selectedChat.hsbl,
+            message,
+            userNameInput.value.trim()
+          );
           shadowRoot.getElementById("message-input").value = "";
 
-          const textarea = shadowRoot.getElementById('message-input');
-          textarea.style.height = 'auto';
+          const textarea = shadowRoot.getElementById("message-input");
+          textarea.style.height = "auto";
         } catch (err) {
           console.error("Lỗi gửi tin nhắn:", err);
         }
@@ -1363,34 +1455,37 @@ class ChatWidget extends HTMLElement {
 
     // ================== SIGNALR CONNECTION ==================
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${BASE_URL}chatHub?token=${token}&ePartnerCode=${ePartnerCode}`, {
-        withCredentials: false,
-      })
+      .withUrl(
+        `${BASE_URL}chatHub?token=${token}&ePartnerCode=${ePartnerCode}`,
+        {
+          withCredentials: false,
+        }
+      )
       .configureLogging(signalR.LogLevel.Information)
       .withAutomaticReconnect()
       .build();
 
     // Nhận tin nhắn từ server
     connection.on("ReceiveGroupMessage", (data) => {
-      console.log('Tin nhắn nhận được:', data);
+      console.log("Tin nhắn nhận được:", data);
       const isMe = userId === data.ma_doi_tac_nsd;
       const msg = document.createElement("div");
-      msg.classList.add(isMe ? 'me' : 'partner');
+      msg.classList.add(isMe ? "me" : "partner");
       msg.innerHTML = `
           <div class="info">
-          ${isMe ?
-          `<div class="message-title">
+          ${
+            isMe
+              ? `<div class="message-title">
                 <h5>${data.ten}</h5>
                 <p class="message-time">${data.ngay_gui}</p>
               </div>
               <img class="logo-item" src="${data.link_logo}" alt="Logo" />`
-          :
-          `<img class="logo-item" src="${data.link_logo}" alt="Logo" />
+              : `<img class="logo-item" src="${data.link_logo}" alt="Logo" />
               <div class="message-title">
                 <h5>${data.ten}</h5>
                 <p class="message-time">${data.ngay_gui}</p>
               </div>`
-        }
+          }
           </div>
           <div class="message">
               <p>${data.noi_dung_tin_nhan}</p>
@@ -1411,7 +1506,7 @@ class ChatWidget extends HTMLElement {
   }
 
   async initSignalR() {
-    const signalR = window.signalR || await this.loadSignalR();
+    const signalR = window.signalR || (await this.loadSignalR());
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(`${BASE_URL}chatHub`, { withCredentials: false })
@@ -1433,8 +1528,9 @@ class ChatWidget extends HTMLElement {
     return new Promise((resolve, reject) => {
       if (typeof signalR !== "undefined") return resolve();
 
-      const script = document.createElement('script');
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js";
+      const script = document.createElement("script");
+      script.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js";
       script.onload = () => {
         console.log("SignalR đã tải xong.");
         resolve();
@@ -1446,45 +1542,49 @@ class ChatWidget extends HTMLElement {
 
   setupEmojiPickerAfterLoad() {
     const shadow = this.shadowRoot;
-    const messageSending = shadow.querySelector('.message-sending');
-    const emojiButton = shadow.querySelector('#emoji-button');
-    const messageInput = shadow.querySelector('#message-input');
+    const messageSending = shadow.querySelector(".message-sending");
+    const emojiButton = shadow.querySelector("#emoji-button");
+    const messageInput = shadow.querySelector("#message-input");
 
     if (!messageSending || !emojiButton || !messageInput) return;
 
     // Tạo emoji-picker element
-    let picker = messageSending.querySelector('emoji-picker');
+    let picker = messageSending.querySelector("emoji-picker");
     if (!picker) {
-      picker = document.createElement('emoji-picker');
+      picker = document.createElement("emoji-picker");
       messageSending.appendChild(picker);
     }
 
     // Xử lý chọn emoji
-    picker.addEventListener('emoji-click', (event) => {
+    picker.addEventListener("emoji-click", (event) => {
       const emoji = event.detail.unicode;
       const start = messageInput.selectionStart;
       const end = messageInput.selectionEnd;
-      messageInput.value = messageInput.value.substring(0, start) + emoji + messageInput.value.substring(end);
+      messageInput.value =
+        messageInput.value.substring(0, start) +
+        emoji +
+        messageInput.value.substring(end);
       const newPos = start + emoji.length;
       messageInput.setSelectionRange(newPos, newPos);
       messageInput.focus();
-      picker.style.display = 'none';
-      messageInput.dispatchEvent(new Event('input')); // resize textarea
+      picker.style.display = "none";
+      messageInput.dispatchEvent(new Event("input")); // resize textarea
     });
 
     // Toggle picker
-    emojiButton.addEventListener('click', (e) => {
+    emojiButton.addEventListener("click", (e) => {
       e.stopPropagation();
-      picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+      picker.style.display =
+        picker.style.display === "block" ? "none" : "block";
     });
 
     // Đóng khi click ngoài
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
       if (!picker.contains(e.target) && e.target !== emojiButton) {
-        picker.style.display = 'none';
+        picker.style.display = "none";
       }
     });
   }
 }
 
-customElements.define('chat-widget', ChatWidget);
+customElements.define("chat-widget", ChatWidget);

@@ -1,0 +1,13 @@
+{
+  "name": "@minhnd1010/chat-widget",
+  "version": "1.0.0",
+  "description": "Chat widget hỗ trợ SignalR real-time cho website",
+  "main": "index.js",
+  "type": "module",
+  "keywords": ["chat", "widget", "signalr", "web-component", "chatbot"],
+  "author": "minhnd1010",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -36,6 +36,9 @@ let chatBoxListContainerDisplay = false;
 let chatBoxInputInfoDisplay = true;
 let chatDetailsDisplay = true;
 
+// 1.0.8
+let attachedFiles = [];
+
 // ================== DOM ELEMENTS ==================
 const listEl = document.querySelector("#list-items ul");
 const infoTitle = document.querySelector('#info-input .info-header h4');
@@ -59,6 +62,10 @@ const btnSendMessage = document.querySelector('#btn-send-message');
 const textarea = document.getElementById('message-input');
 const emojiButton = document.getElementById('emoji-button');
 const messageInput = document.getElementById('message-input');
+// 1.0.8
+const fileInput = document.getElementById('file-input');
+const filePreview = document.getElementById('file-preview');
+const btnAttachFile = document.getElementById('attach-button');
 
 userNameInput.value = fullName;
 
@@ -346,19 +353,33 @@ function validateInfoInputs() {
     return isValid;
 }
 
-function validateContractId(contractId) {
-    return fetch(`${BASE_URL}api/chat/execute`)
-        .then(response => {
-            if (!response.ok) {
-                errorInfoInput.textContent = `Mã hợp đồng không tồn tại.`;
-                return false;
-            }
-            return true;
-        })
-        .catch(() => {
-            errorInfoInput.textContent = `Hệ thống lỗi.`;
-            return false;
+async function validateContractId(contractId) {
+    try {
+        const body = {
+            so_hsbl_bv: contractId,
+            ma_doi_tac_nsd_partner: selectedChat.id
+        };
+
+        const header = {
+            ConnectionId: connection.connectionId || "",
+            eAction: "XNN3Q5NN1PLC12R",
+        };
+
+        const response = await fetch(`${BASE_URL}api/chat/execute`, {
+            method: 'POST',
+            headers: header,
+            body: JSON.stringify(body)
         });
+
+        if (!response.ok) {
+            const data = await response.json();
+            return data.message || 'Lỗi khi xác thực hợp đồng';
+        }
+
+        return null;
+    } catch {
+        return 'Dịch vụ tạm thời không khả dụng, thử lại sau';
+    }
 }
 
 // ================== EVENT LISTENERS ==================
@@ -477,7 +498,13 @@ continueButton.addEventListener('click', async function () {
 
         if (selectedChat) {
             selectedChat.hsbl = hsblInput.value.trim();
-            selectedChat.userName = userNameInput.value.trim();
+            selectedChat.fullName = userNameInput.value.trim();
+        }
+
+        const errorMessage = await validateContractId(selectedChat.hsbl);
+        if (errorMessage) {
+            errorInfoInput.textContent = errorMessage;
+            return;
         }
 
         errorInfoInput.textContent = '';
@@ -538,6 +565,143 @@ btnSendMessage.addEventListener('click', async function () {
         }
     }
 });
+
+// (1.0.8)
+// Khi người dùng chọn file
+fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+        attachedFiles.push(file);
+        renderFilePreview(file);
+    });
+    fileInput.value = ''; // Reset để có thể chọn lại cùng file
+});
+
+// Hiển thị preview
+function renderFilePreview(file) {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+
+    if (file.type.startsWith('image/')) {
+        item.classList.add('image');
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        item.appendChild(img);
+    } else {
+        item.classList.add('file');
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'file-name';
+        nameDiv.textContent = file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name;
+        item.appendChild(nameDiv);
+    }
+
+    // Nút X xóa
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '×';
+    removeBtn.className = 'remove-file';
+    removeBtn.onclick = () => {
+        attachedFiles = attachedFiles.filter(f => f !== file);
+        item.remove();
+        if (file.type.startsWith('image/')) {
+            URL.revokeObjectURL(img.src); // Giải phóng bộ nhớ
+        }
+    };
+    item.appendChild(removeBtn);
+
+    filePreview.appendChild(item);
+}
+
+// // Gửi tin nhắn + file (sửa hàm send hiện tại)
+// btnSendMessage.addEventListener('click', sendMessageWithFiles);
+
+// function sendMessageWithFiles() {
+//     const text = messageInput.value.trim();
+
+//     // Gửi văn bản nếu có
+//     if (text) {
+//         addTextMessage(text, 'me');
+//     }
+
+//     // Gửi từng file nếu có
+//     attachedFiles.forEach(file => {
+//         if (file.type.startsWith('image/')) {
+//             addImageMessage(file, 'me');
+//         } else {
+//             addFileMessage(file, 'me');
+//         }
+//     });
+
+//     // Nếu dùng SignalR → bạn có thể gửi base64 hoặc upload riêng (phần nâng cao sau)
+
+//     // Reset sau khi gửi
+//     messageInput.value = '';
+//     messageInput.style.height = 'auto';
+//     attachedFiles = [];
+//     filePreview.innerHTML = '';
+//     scrollToBottom();
+// }
+
+// Thêm tin nhắn văn bản
+function addTextMessage(text, sender) {
+    const container = document.createElement('div');
+    container.className = sender;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message';
+    const p = document.createElement('p');
+    p.textContent = text;
+    msgDiv.appendChild(p);
+
+    container.appendChild(msgDiv);
+    messageContainer.appendChild(container);
+    scrollToBottom();
+}
+
+// Thêm ảnh vào chat
+function addImageMessage(file, sender) {
+    const container = document.createElement('div');
+    container.className = sender;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message';
+
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.className = 'chat-image';
+    img.alt = file.name;
+
+    msgDiv.appendChild(img);
+    container.appendChild(msgDiv);
+    messageContainer.appendChild(container);
+    scrollToBottom();
+}
+
+// Thêm file không phải ảnh
+function addFileMessage(file, sender) {
+    const container = document.createElement('div');
+    container.className = sender;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message';
+
+    const fileDiv = document.createElement('div');
+    fileDiv.className = 'chat-file';
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(file);
+    link.download = file.name;
+    link.textContent = `📄 ${file.name}`;
+
+    const size = document.createElement('span');
+    size.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+
+    fileDiv.appendChild(link);
+    fileDiv.appendChild(size);
+    msgDiv.appendChild(fileDiv);
+    container.appendChild(msgDiv);
+    messageContainer.appendChild(container);
+    scrollToBottom();
+}
 
 // ================== EMOJI PICKER ==================
 // Tạo picker động (chỉ tạo một lần)
