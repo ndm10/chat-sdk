@@ -86,10 +86,14 @@ class ChatWidget extends HTMLElement {
           align-items: center;
         }
 
-        #chat-box {
+        #widget-container {
           position: absolute;
           top: -78vh;
           left: 42px;
+        }
+
+        #chat-box {
+          position: relative;
           height: 80vh;
           width: 500px;
           border-radius: 16px;
@@ -116,6 +120,7 @@ class ChatWidget extends HTMLElement {
           border-bottom: 1px solid #e7e7e7ff;
           box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
           padding: 10px;
+          position: relative;
         }
 
         .chat-filter {
@@ -152,6 +157,31 @@ class ChatWidget extends HTMLElement {
 
         .chat-filter input:-internal-autofill-selected {
           background-color: #eeeeeeff !important;
+        }
+
+        #btn-list-x {
+          background-color: #e0e0e0ff;
+          border: none;
+          border-radius: 50px;
+          height: 28px;
+          width: 28px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          color: black;
+          fill: black;
+          gap: 0.5rem;
+          white-space: nowrap;
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translate(0, -50%);
+        }
+
+        #btn-list-x:hover {
+          background-color: #cececeff;
         }
 
         /* ================================================================================
@@ -489,7 +519,7 @@ class ChatWidget extends HTMLElement {
           background-color: #5b5bdfff;
           border: none;
           border-radius: 50px;
-          padding: 10px 10px;
+          padding: 10.5px;
           font-size: 1rem;
           cursor: pointer;
           display: flex;
@@ -564,6 +594,42 @@ class ChatWidget extends HTMLElement {
 
         emoji-picker.show {
           display: block;
+        }
+
+        /* ================================================================================
+           LOADING SPINNER STYLES
+           ================================================================================ */
+        #spinner-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          height: 100%;
+          width: 100%;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .loader {
+          width: 36px;
+          height: 36px;
+          border: 5px solid #fff;
+          border-bottom-color: transparent;
+          border-radius: 50%;
+          display: inline-block;
+          box-sizing: border-box;
+          animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
 
         /* ================================================================================
@@ -706,45 +772,77 @@ class ChatWidget extends HTMLElement {
             />
           </svg>
         </div>
-        <div id="chat-box">
-          <div id="chat-box-header">
-            <div class="chat-filter">
-              <input
-                id="search-chat-input"
-                type="text"
-                placeholder="Tìm kiếm đối tác..."
-              />
-              <svg
-                id="search-chat-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 640"
-              >
-                <path
-                  d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z"
+        <div id="widget-container">
+          <div id="chat-box">
+            <div id="spinner-overlay">
+              <span class="loader"></span>
+            </div>
+            <div id="chat-box-header">
+              <div class="chat-filter">
+                <input
+                  id="search-chat-input"
+                  type="text"
+                  placeholder="Tìm kiếm đối tác..."
                 />
-              </svg>
-            </div>
-          </div>
-          <div class="chat-box-container">
-            <!-- Chat list items -->
-            <div id="list-items">
-              <ul></ul>
-            </div>
-
-            <!-- Chat info input -->
-            <div id="info-input">
-              <div class="info-header">
-                <h4></h4>
+                <svg
+                  id="search-chat-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 640 640"
+                >
+                  <path
+                    d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z"
+                  />
+                </svg>
               </div>
-              <h3>Nhập thông tin chat</h3>
-              <input id="input-shsbl" type="text" placeholder="Nhập số HSBL" />
-              <input
-                id="input-username"
-                type="text"
-                placeholder="Nhập họ và tên"
-              />
-              <div id="info-input-buttons">
-                <button id="turn-back-button">
+              <button id="btn-list-x">X</button>
+            </div>
+            <div class="chat-box-container">
+              <!-- Chat list items -->
+              <div id="list-items">
+                <ul></ul>
+              </div>
+    
+              <!-- Chat info input -->
+              <div id="info-input">
+                <div class="info-header">
+                  <h4></h4>
+                </div>
+                <h3>Nhập thông tin chat</h3>
+                <input id="input-shsbl" type="text" placeholder="Nhập số HSBL" />
+                <input
+                  id="input-username"
+                  type="text"
+                  placeholder="Nhập họ và tên"
+                />
+                <div id="info-input-buttons">
+                  <button id="turn-back-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                      <path
+                        d="M73.4 297.4C60.9 309.9 60.9 330.2 73.4 342.7L233.4 502.7C245.9 515.2 266.2 515.2 278.7 502.7C291.2 490.2 291.2 469.9 278.7 457.4L173.3 352L544 352C561.7 352 576 337.7 576 320C576 302.3 561.7 288 544 288L173.3 288L278.7 182.6C291.2 170.1 291.2 149.8 278.7 137.3C266.2 124.8 245.9 124.8 233.4 137.3L73.4 297.3z"
+                      />
+                    </svg>
+                    Quay lại
+                  </button>
+    
+                  <button id="continue-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                      <path
+                        d="M566.6 342.6C579.1 330.1 579.1 309.8 566.6 297.3L406.6 137.3C394.1 124.8 373.8 124.8 361.3 137.3C348.8 149.8 348.8 170.1 361.3 182.6L466.7 288L96 288C78.3 288 64 302.3 64 320C64 337.7 78.3 352 96 352L466.7 352L361.3 457.4C348.8 469.9 348.8 490.2 361.3 502.7C373.8 515.2 394.1 515.2 406.6 502.7L566.6 342.7z"
+                      />
+                    </svg>
+                    Tiếp tục
+                  </button>
+                </div>
+                <div>
+                  <p id="error-info-input"></p>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Chat message detail -->
+            <div id="chat-details">
+              <div class="details-header">
+                <button id="btn-details-back">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                     <path
                       d="M73.4 297.4C60.9 309.9 60.9 330.2 73.4 342.7L233.4 502.7C245.9 515.2 266.2 515.2 278.7 502.7C291.2 490.2 291.2 469.9 278.7 457.4L173.3 352L544 352C561.7 352 576 337.7 576 320C576 302.3 561.7 288 544 288L173.3 288L278.7 182.6C291.2 170.1 291.2 149.8 278.7 137.3C266.2 124.8 245.9 124.8 233.4 137.3L73.4 297.3z"
@@ -752,69 +850,36 @@ class ChatWidget extends HTMLElement {
                   </svg>
                   Quay lại
                 </button>
-
-                <button id="continue-button">
+                <button id="btn-x">X</button>
+              </div>
+    
+              <!-- Message chat details -->
+              <div id="message-container"></div>
+    
+              <!-- Message input -->
+              <div class="message-sending">
+                <div class="message-content">
+                  <textarea
+                    id="message-input"
+                    rows="1"
+                    placeholder="Nhập tin nhắn..."
+                  ></textarea>
+                  <button id="emoji-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path
+                    d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM229.4 385.9C249.8 413.9 282.8 432 320 432C357.2 432 390.2 413.9 410.6 385.9C418.4 375.2 433.4 372.8 444.1 380.6C454.8 388.4 457.2 403.4 449.4 414.1C420.3 454 373.2 480 320 480C266.8 480 219.7 454 190.6 414.1C182.8 403.4 185.2 388.4 195.9 380.6C206.6 372.8 221.6 375.2 229.4 385.9zM208 272C208 254.3 222.3 240 240 240C257.7 240 272 254.3 272 272C272 289.7 257.7 304 240 304C222.3 304 208 289.7 208 272zM400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304C382.3 304 368 289.7 368 272C368 254.3 382.3 240 400 240z"
+                    />
+                    </svg>
+                  </button>
+                </div>
+                <button id="btn-send-message">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                     <path
-                      d="M566.6 342.6C579.1 330.1 579.1 309.8 566.6 297.3L406.6 137.3C394.1 124.8 373.8 124.8 361.3 137.3C348.8 149.8 348.8 170.1 361.3 182.6L466.7 288L96 288C78.3 288 64 302.3 64 320C64 337.7 78.3 352 96 352L466.7 352L361.3 457.4C348.8 469.9 348.8 490.2 361.3 502.7C373.8 515.2 394.1 515.2 406.6 502.7L566.6 342.7z"
+                      d="M322.5 351.7L523.4 150.9L391 520.3L322.5 351.7zM489.4 117L288.6 317.8L120 249.3L489.4 117zM70.1 280.8L275.9 364.4L359.5 570.2C364.8 583.3 377.6 591.9 391.8 591.9C406.5 591.9 419.6 582.7 424.6 568.8L602.6 72C606.1 62.2 603.6 51.4 596.3 44C589 36.6 578.1 34.2 568.3 37.7L71.4 215.7C57.5 220.7 48.3 233.8 48.3 248.5C48.3 262.7 56.9 275.5 70 280.8z"
                     />
                   </svg>
-                  Tiếp tục
                 </button>
               </div>
-              <div>
-                <p id="error-info-input"></p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Chat message detail -->
-          <div id="chat-details">
-            <div class="details-header">
-              <button id="btn-details-back">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                  <path
-                    d="M73.4 297.4C60.9 309.9 60.9 330.2 73.4 342.7L233.4 502.7C245.9 515.2 266.2 515.2 278.7 502.7C291.2 490.2 291.2 469.9 278.7 457.4L173.3 352L544 352C561.7 352 576 337.7 576 320C576 302.3 561.7 288 544 288L173.3 288L278.7 182.6C291.2 170.1 291.2 149.8 278.7 137.3C266.2 124.8 245.9 124.8 233.4 137.3L73.4 297.3z"
-                  />
-                </svg>
-                Quay lại
-              </button>
-              <button id="btn-x">X</button>
-            </div>
-
-            <!-- Message chat details -->
-            <div id="message-container"></div>
-
-            <!-- Message input -->
-            <div class="message-sending">
-              <div class="file-attach" title="Đính kèm file">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                  <path
-                    d="M352 128C352 110.3 337.7 96 320 96C302.3 96 288 110.3 288 128L288 288L128 288C110.3 288 96 302.3 96 320C96 337.7 110.3 352 128 352L288 352L288 512C288 529.7 302.3 544 320 544C337.7 544 352 529.7 352 512L352 352L512 352C529.7 352 544 337.7 544 320C544 302.3 529.7 288 512 288L352 288L352 128z"
-                  />
-                </svg>
-              </div>
-              <div class="message-content">
-                <textarea
-                  id="message-input"
-                  rows="1"
-                  placeholder="Nhập tin nhắn..."
-                ></textarea>
-              </div>
-              <button id="emoji-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                  <path
-                    d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM229.4 385.9C249.8 413.9 282.8 432 320 432C357.2 432 390.2 413.9 410.6 385.9C418.4 375.2 433.4 372.8 444.1 380.6C454.8 388.4 457.2 403.4 449.4 414.1C420.3 454 373.2 480 320 480C266.8 480 219.7 454 190.6 414.1C182.8 403.4 185.2 388.4 195.9 380.6C206.6 372.8 221.6 375.2 229.4 385.9zM208 272C208 254.3 222.3 240 240 240C257.7 240 272 254.3 272 272C272 289.7 257.7 304 240 304C222.3 304 208 289.7 208 272zM400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304C382.3 304 368 289.7 368 272C368 254.3 382.3 240 400 240z"
-                  />
-                </svg>
-              </button>
-              <button id="btn-send-message">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                  <path
-                    d="M322.5 351.7L523.4 150.9L391 520.3L322.5 351.7zM489.4 117L288.6 317.8L120 249.3L489.4 117zM70.1 280.8L275.9 364.4L359.5 570.2C364.8 583.3 377.6 591.9 391.8 591.9C406.5 591.9 419.6 582.7 424.6 568.8L602.6 72C606.1 62.2 603.6 51.4 596.3 44C589 36.6 578.1 34.2 568.3 37.7L71.4 215.7C57.5 220.7 48.3 233.8 48.3 248.5C48.3 262.7 56.9 275.5 70 280.8z"
-                  />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
@@ -873,6 +938,7 @@ class ChatWidget extends HTMLElement {
     const continueButton = shadowRoot.querySelector("#continue-button");
     const chatDetails = shadowRoot.querySelector("#chat-details");
     const btnX = shadowRoot.querySelector("#btn-x");
+    const btnListX = shadowRoot.querySelector("#btn-list-x");
     const detailsBackButton = shadowRoot.querySelector("#btn-details-back");
     const messageContainer = shadowRoot.querySelector("#message-container");
     const hsblInput = shadowRoot.querySelector("#input-shsbl");
@@ -882,6 +948,7 @@ class ChatWidget extends HTMLElement {
     const textarea = shadowRoot.getElementById("message-input");
     const emojiButton = shadowRoot.getElementById("emoji-button");
     const messageInput = shadowRoot.getElementById("message-input");
+    const spinnerOverlay = shadowRoot.getElementById("spinner-overlay");
 
     userNameInput.value = fullName;
 
@@ -964,6 +1031,8 @@ class ChatWidget extends HTMLElement {
           eAction: "OO78LLZ0T7NLEZ3",
         };
 
+        spinnerOverlay.style.display = "flex";
+
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
           method: "POST",
           headers: header,
@@ -1000,6 +1069,8 @@ class ChatWidget extends HTMLElement {
             '<li style="padding: 20px; text-align: center;">Không thể tải danh sách chat</li>';
         }
         return 0;
+      } finally {
+        spinnerOverlay.style.display = "none";
       }
     }
 
@@ -1074,6 +1145,8 @@ class ChatWidget extends HTMLElement {
           eAction: "P75EVW99A84IGNK",
         };
 
+        spinnerOverlay.style.display = "flex";
+
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
           method: "POST",
           headers: header,
@@ -1096,6 +1169,8 @@ class ChatWidget extends HTMLElement {
         return sortedMessages;
       } catch {
         return [];
+      } finally {
+        spinnerOverlay.style.display = "none";
       }
     }
 
@@ -1193,19 +1268,37 @@ class ChatWidget extends HTMLElement {
       return isValid;
     }
 
-    function validateContractId(contractId) {
-      return fetch(`${BASE_URL}api/chat/execute`)
-        .then((response) => {
-          if (!response.ok) {
-            errorInfoInput.textContent = `Mã hợp đồng không tồn tại.`;
-            return false;
-          }
-          return true;
-        })
-        .catch(() => {
-          errorInfoInput.textContent = `Hệ thống lỗi.`;
-          return false;
+    async function validateContractId(contractId) {
+      try {
+        const body = {
+          so_hsbl_bv: contractId,
+          ma_doi_tac_nsd_partner: selectedChat.id,
+        };
+
+        const header = {
+          ConnectionId: connection.connectionId || "",
+          eAction: "XNN3Q5NN1PLC12R",
+        };
+
+        spinnerOverlay.style.display = "flex";
+
+        const response = await fetch(`${BASE_URL}api/chat/execute`, {
+          method: "POST",
+          headers: header,
+          body: JSON.stringify(body),
         });
+
+        if (!response.ok) {
+          const data = await response.json();
+          return data.message || "Lỗi khi xác thực hợp đồng";
+        }
+
+        return null;
+      } catch {
+        return "Dịch vụ tạm thời không khả dụng, thử lại sau";
+      } finally {
+        spinnerOverlay.style.display = "none";
+      }
     }
 
     // ================== EVENT LISTENERS ==================
@@ -1257,6 +1350,7 @@ class ChatWidget extends HTMLElement {
       : "flex";
     chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? "none" : "flex";
     chatDetails.style.display = chatDetailsDisplay ? "none" : "flex";
+    spinnerOverlay.style.display = "none";
 
     // Chat box icon click
     chatBoxIcon.addEventListener("click", function () {
@@ -1276,6 +1370,14 @@ class ChatWidget extends HTMLElement {
 
     // Close button
     btnX.addEventListener("click", function () {
+      if (chatBoxContainer) {
+        chatBoxContainerDisplay = true;
+        chatBoxContainer.style.display = "none";
+      }
+    });
+
+    // Close list button
+    btnListX.addEventListener("click", function () {
       if (chatBoxContainer) {
         chatBoxContainerDisplay = true;
         chatBoxContainer.style.display = "none";
@@ -1338,6 +1440,12 @@ class ChatWidget extends HTMLElement {
         if (selectedChat) {
           selectedChat.hsbl = hsblInput.value.trim();
           selectedChat.userName = userNameInput.value.trim();
+        }
+
+        const errorMessage = await validateContractId(selectedChat.hsbl);
+        if (errorMessage) {
+          errorInfoInput.textContent = errorMessage;
+          return;
         }
 
         errorInfoInput.textContent = "";

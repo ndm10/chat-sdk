@@ -35,7 +35,6 @@ let chatBoxContainerDisplay = true;
 let chatBoxListContainerDisplay = false;
 let chatBoxInputInfoDisplay = true;
 let chatDetailsDisplay = true;
-
 // 1.0.8
 let attachedFiles = [];
 
@@ -53,6 +52,7 @@ const turnBackButton = document.querySelector('#turn-back-button');
 const continueButton = document.querySelector('#continue-button');
 const chatDetails = document.querySelector('#chat-details');
 const btnX = document.querySelector('#btn-x');
+const btnListX = document.querySelector('#btn-list-x');
 const detailsBackButton = document.querySelector('#btn-details-back');
 const messageContainer = document.querySelector('#message-container');
 const hsblInput = document.querySelector('#input-shsbl');
@@ -65,7 +65,7 @@ const messageInput = document.getElementById('message-input');
 // 1.0.8
 const fileInput = document.getElementById('file-input');
 const filePreview = document.getElementById('file-preview');
-const btnAttachFile = document.getElementById('attach-button');
+const spinnerOverlay = document.getElementById('spinner-overlay');
 
 userNameInput.value = fullName;
 
@@ -123,7 +123,6 @@ async function ensureChatListFilled() {
     const clientHeight = chatBoxListContainer.clientHeight;
 
     if (scrollHeight <= clientHeight && chatListHasMore && !chatListIsLoading) {
-        console.log('Danh sách chưa đủ để scroll, load thêm...');
         await loadMoreChatList();
         setTimeout(() => ensureChatListFilled(), 100);
     }
@@ -141,6 +140,8 @@ async function loadChatList(searchTerm, page = 1, append = false) {
             ConnectionId: connection.connectionId || "",
             eAction: "OO78LLZ0T7NLEZ3",
         };
+
+        spinnerOverlay.style.display = 'flex';
 
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
             method: 'POST',
@@ -174,6 +175,8 @@ async function loadChatList(searchTerm, page = 1, append = false) {
             listEl.innerHTML = '<li style="padding: 20px; text-align: center;">Không thể tải danh sách chat</li>';
         }
         return 0;
+    } finally {
+        spinnerOverlay.style.display = 'none';
     }
 }
 
@@ -237,6 +240,8 @@ async function loadMessageHistory(groupName, page = 1) {
             eAction: "P75EVW99A84IGNK",
         };
 
+        spinnerOverlay.style.display = 'flex';
+
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
             method: 'POST',
             headers: header,
@@ -259,6 +264,45 @@ async function loadMessageHistory(groupName, page = 1) {
         return sortedMessages;
     } catch {
         return [];
+    } finally {
+        spinnerOverlay.style.display = 'none';
+    }
+}
+
+function clearAttachedFiles() {
+    attachedFiles = [];
+    filePreview.innerHTML = '';
+    fileInput.value = '';
+}
+
+async function sendFileMessage(message) {
+    try {
+        const formData = new FormData();
+        formData.append('message', message || '');
+        formData.append('group', selectedChat.hsbl || '');
+        formData.append('fullName', selectedChat.fullName || '');
+
+        attachedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const header = {
+            ConnectionId: connection.connectionId
+        };
+
+        const response = await fetch(`${BASE_URL}api/message/file-message`, {
+            method: 'POST',
+            headers: header,
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Failed to file send message');
+
+        const data = await response.json();
+        clearAttachedFiles();
+        console.log('Loaded messages:', data);
+    } catch (err) {
+        console.error('Lỗi gửi tin nhắn file:', err);
     }
 }
 
@@ -365,6 +409,8 @@ async function validateContractId(contractId) {
             eAction: "XNN3Q5NN1PLC12R",
         };
 
+        spinnerOverlay.style.display = 'flex';
+
         const response = await fetch(`${BASE_URL}api/chat/execute`, {
             method: 'POST',
             headers: header,
@@ -379,6 +425,8 @@ async function validateContractId(contractId) {
         return null;
     } catch {
         return 'Dịch vụ tạm thời không khả dụng, thử lại sau';
+    } finally {
+        spinnerOverlay.style.display = 'none';
     }
 }
 
@@ -426,6 +474,7 @@ chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
 chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
 chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
 chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
+spinnerOverlay.style.display = 'none';
 
 // Chat box icon click
 chatBoxIcon.addEventListener('click', function () {
@@ -443,6 +492,14 @@ chatBoxIcon.addEventListener('click', function () {
 
 // Close button
 btnX.addEventListener('click', function () {
+    if (chatBoxContainer) {
+        chatBoxContainerDisplay = true;
+        chatBoxContainer.style.display = 'none';
+    }
+});
+
+// Close list button
+btnListX.addEventListener('click', function () {
     if (chatBoxContainer) {
         chatBoxContainerDisplay = true;
         chatBoxContainer.style.display = 'none';
@@ -553,13 +610,19 @@ detailsBackButton.addEventListener('click', function () {
 btnSendMessage.addEventListener('click', async function () {
     const message = document.getElementById('message-input').value;
     console.log('Gửi tin nhắn:', message);
-    if (message) {
+    if (message || attachedFiles.length > 0) {
         try {
-            await connection.invoke("SendMessageToGroupAsync", selectedChat.hsbl, message, userNameInput.value.trim());
-            document.getElementById("message-input").value = "";
-
-            const textarea = document.getElementById('message-input');
-            textarea.style.height = 'auto';
+            if (attachedFiles.length === 0) {
+                await connection.invoke("SendMessageToGroupAsync", selectedChat.hsbl, message, selectedChat.fullName);
+                document.getElementById("message-input").value = "";
+                const textarea = document.getElementById('message-input');
+                textarea.style.height = 'auto';
+            } else {
+                await sendFileMessage(message);
+                document.getElementById("message-input").value = "";
+                const textarea = document.getElementById('message-input');
+                textarea.style.height = 'auto';
+            }
         } catch (err) {
             console.error("Lỗi gửi tin nhắn:", err);
         }
@@ -567,17 +630,17 @@ btnSendMessage.addEventListener('click', async function () {
 });
 
 // (1.0.8)
-// Khi người dùng chọn file
+// When user selects files
 fileInput.addEventListener('change', (e) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
         attachedFiles.push(file);
         renderFilePreview(file);
     });
-    fileInput.value = ''; // Reset để có thể chọn lại cùng file
+    fileInput.value = ''; // Reset input
 });
 
-// Hiển thị preview
+// Display file previews
 function renderFilePreview(file) {
     const item = document.createElement('div');
     item.className = 'file-item';
@@ -611,97 +674,67 @@ function renderFilePreview(file) {
     filePreview.appendChild(item);
 }
 
-// // Gửi tin nhắn + file (sửa hàm send hiện tại)
-// btnSendMessage.addEventListener('click', sendMessageWithFiles);
+// // Thêm tin nhắn văn bản
+// function addTextMessage(text, sender) {
+//     const container = document.createElement('div');
+//     container.className = sender;
 
-// function sendMessageWithFiles() {
-//     const text = messageInput.value.trim();
+//     const msgDiv = document.createElement('div');
+//     msgDiv.className = 'message';
+//     const p = document.createElement('p');
+//     p.textContent = text;
+//     msgDiv.appendChild(p);
 
-//     // Gửi văn bản nếu có
-//     if (text) {
-//         addTextMessage(text, 'me');
-//     }
-
-//     // Gửi từng file nếu có
-//     attachedFiles.forEach(file => {
-//         if (file.type.startsWith('image/')) {
-//             addImageMessage(file, 'me');
-//         } else {
-//             addFileMessage(file, 'me');
-//         }
-//     });
-
-//     // Nếu dùng SignalR → bạn có thể gửi base64 hoặc upload riêng (phần nâng cao sau)
-
-//     // Reset sau khi gửi
-//     messageInput.value = '';
-//     messageInput.style.height = 'auto';
-//     attachedFiles = [];
-//     filePreview.innerHTML = '';
+//     container.appendChild(msgDiv);
+//     messageContainer.appendChild(container);
 //     scrollToBottom();
 // }
 
-// Thêm tin nhắn văn bản
-function addTextMessage(text, sender) {
-    const container = document.createElement('div');
-    container.className = sender;
+// // Thêm ảnh vào chat
+// function addImageMessage(file, sender) {
+//     const container = document.createElement('div');
+//     container.className = sender;
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message';
-    const p = document.createElement('p');
-    p.textContent = text;
-    msgDiv.appendChild(p);
+//     const msgDiv = document.createElement('div');
+//     msgDiv.className = 'message';
 
-    container.appendChild(msgDiv);
-    messageContainer.appendChild(container);
-    scrollToBottom();
-}
+//     const img = document.createElement('img');
+//     img.src = URL.createObjectURL(file);
+//     img.className = 'chat-image';
+//     img.alt = file.name;
 
-// Thêm ảnh vào chat
-function addImageMessage(file, sender) {
-    const container = document.createElement('div');
-    container.className = sender;
+//     msgDiv.appendChild(img);
+//     container.appendChild(msgDiv);
+//     messageContainer.appendChild(container);
+//     scrollToBottom();
+// }
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message';
+// // Thêm file không phải ảnh
+// function addFileMessage(file, sender) {
+//     const container = document.createElement('div');
+//     container.className = sender;
 
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(file);
-    img.className = 'chat-image';
-    img.alt = file.name;
+//     const msgDiv = document.createElement('div');
+//     msgDiv.className = 'message';
 
-    msgDiv.appendChild(img);
-    container.appendChild(msgDiv);
-    messageContainer.appendChild(container);
-    scrollToBottom();
-}
+//     const fileDiv = document.createElement('div');
+//     fileDiv.className = 'chat-file';
 
-// Thêm file không phải ảnh
-function addFileMessage(file, sender) {
-    const container = document.createElement('div');
-    container.className = sender;
+//     const link = document.createElement('a');
+//     link.href = URL.createObjectURL(file);
+//     link.download = file.name;
+//     link.textContent = `📄 ${file.name}`;
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message';
+//     const size = document.createElement('span');
+//     size.textContent = `${(file.size / 1024).toFixed(1)} KB`;
 
-    const fileDiv = document.createElement('div');
-    fileDiv.className = 'chat-file';
-
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(file);
-    link.download = file.name;
-    link.textContent = `📄 ${file.name}`;
-
-    const size = document.createElement('span');
-    size.textContent = `${(file.size / 1024).toFixed(1)} KB`;
-
-    fileDiv.appendChild(link);
-    fileDiv.appendChild(size);
-    msgDiv.appendChild(fileDiv);
-    container.appendChild(msgDiv);
-    messageContainer.appendChild(container);
-    scrollToBottom();
-}
+//     fileDiv.appendChild(link);
+//     fileDiv.appendChild(size);
+//     msgDiv.appendChild(fileDiv);
+//     container.appendChild(msgDiv);
+//     messageContainer.appendChild(container);
+//     scrollToBottom();
+// }
 
 // ================== EMOJI PICKER ==================
 // Tạo picker động (chỉ tạo một lần)
