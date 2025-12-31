@@ -104,9 +104,9 @@ function scrollToBottom() {
 function renderChatList(items, append = false) {
     const htmlContent = items
         .map(item => `
-            <li data-id="${item.MA}">
-                <img class="logo-item" src="${item.LINK_LOGO}" alt="Logo" />
-                <h4 class="title-item">${item.TEN}</h4>
+            <li data-id="${item.ma}">
+                <img class="logo-item" src="${item.link_logo}" alt="Logo" />
+                <h4 class="title-item">${item.ten}</h4>
             </li>
         `)
         .join("");
@@ -252,14 +252,12 @@ async function loadMessageHistory(groupName, page = 1) {
 
         const data = await response.json();
 
-        // Sort messages by NGAY_GUI ascending
-        console.log('Loaded messages:', data.data);
+        // Sort messages by ngay_gui ascending
         const sortedMessages = data.data.sort((a, b) => {
-            const dateA = parseCustomDateString(a.NGAY_GUI);
-            const dateB = parseCustomDateString(b.NGAY_GUI);
+            const dateA = parseCustomDateString(a.ngay_gui);
+            const dateB = parseCustomDateString(b.ngay_gui);
             return dateA - dateB;
         });
-        console.log('Sorted messages:', sortedMessages);
 
         return sortedMessages;
     } catch {
@@ -310,27 +308,27 @@ async function appendMessageHistory(messages, prepend = false) {
     const fragment = document.createDocumentFragment();
 
     for (const msg of messages) {
-        const isMe = userId === msg.MA_DOI_TAC_NSD;
+        const isMe = userId === msg.ma_doi_tac_nsd;
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(isMe ? 'me' : 'partner');
         msgDiv.innerHTML = `
             <div class="info">
                 ${isMe ?
                 `<div class="message-title">
-                  <h5>${msg.TEN}</h5>
-                  <p class="message-time">${msg.NGAY_GUI}</p>
+                  <h5>${msg.ten}</h5>
+                  <p class="message-time">${msg.ngay_gui}</p>
                 </div>
-                <img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />`
+                <img class="logo-item" src="${msg.link_logo}" alt="Logo" />`
                 :
-                `<img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />
+                `<img class="logo-item" src="${msg.link_logo}" alt="Logo" />
                 <div class="message-title">
-                  <h5>${msg.TEN}</h5>
-                  <p class="message-time">${msg.NGAY_GUI}</p>
+                  <h5>${msg.ten}</h5>
+                  <p class="message-time">${msg.ngay_gui}</p>
                 </div>`
             }
             </div>
             <div class="message">
-                <p>${msg.NOI_DUNG_TIN_NHAN}</p>
+                <p>${msg.noi_dung_tin_nhan}</p>
             </div>
         `;
         fragment.appendChild(msgDiv);

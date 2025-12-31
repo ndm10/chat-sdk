@@ -988,9 +988,9 @@ class ChatWidget extends HTMLElement {
       const htmlContent = items
         .map(
           (item) => `
-                <li data-id="${item.MA}">
-                    <img class="logo-item" src="${item.LINK_LOGO}" alt="Logo" />
-                    <h4 class="title-item">${item.TEN}</h4>
+                <li data-id="${item.ma}">
+                    <img class="logo-item" src="${item.link_logo}" alt="Logo" />
+                    <h4 class="title-item">${item.ten}</h4>
                 </li>
             `
         )
@@ -1160,8 +1160,8 @@ class ChatWidget extends HTMLElement {
         // Sort messages by NGAY_GUI ascending
         console.log("Loaded messages:", data.data);
         const sortedMessages = data.data.sort((a, b) => {
-          const dateA = parseCustomDateString(a.NGAY_GUI);
-          const dateB = parseCustomDateString(b.NGAY_GUI);
+          const dateA = parseCustomDateString(a.ngay_gui);
+          const dateB = parseCustomDateString(b.ngay_gui);
           return dateA - dateB;
         });
         console.log("Sorted messages:", sortedMessages);
@@ -1186,19 +1186,19 @@ class ChatWidget extends HTMLElement {
                 ${
                   isMe
                     ? `<div class="message-title">
-                  <h5>${msg.TEN}</h5>
-                  <p class="message-time">${msg.NGAY_GUI}</p>
+                  <h5>${msg.ten}</h5>
+                  <p class="message-time">${msg.ngay_gui}</p>
                 </div>
-                <img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />`
-                    : `<img class="logo-item" src="${msg.LINK_LOGO}" alt="Logo" />
+                <img class="logo-item" src="${msg.link_logo}" alt="Logo" />`
+                    : `<img class="logo-item" src="${msg.link_logo}" alt="Logo" />
                 <div class="message-title">
-                  <h5>${msg.TEN}</h5>
-                  <p class="message-time">${msg.NGAY_GUI}</p>
+                  <h5>${msg.ten}</h5>
+                  <p class="message-time">${msg.ngay_gui}</p>
                 </div>`
                 }
             </div>
             <div class="message">
-                <p>${msg.NOI_DUNG_TIN_NHAN}</p>
+                <p>${msg.noi_dung_tin_nhan}</p>
             </div>
         `;
         fragment.appendChild(msgDiv);
