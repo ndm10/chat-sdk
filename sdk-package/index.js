@@ -35,6 +35,7 @@ class ChatWidget extends HTMLElement {
     }
   }
 
+
   render() {
     // Determine position styles based on attributes
     let position = "";
@@ -42,6 +43,9 @@ class ChatWidget extends HTMLElement {
     const left = this.getAttribute("left");
     const bottom = this.getAttribute("bottom");
     const right = this.getAttribute("right");
+    let headerColor = this.getAttribute("header-color");
+    let buttonColor = this.getAttribute("button-color");
+    let chatboxHeight = this.getAttribute("chatbox-height");
 
     if (top) {
       position += `top: ${top};`;
@@ -60,6 +64,17 @@ class ChatWidget extends HTMLElement {
       position = `bottom: 20px; left: 20px;`;
     }
 
+    if (!chatboxHeight) {
+      chatboxHeight = "80vh";
+    }
+
+    if (!headerColor) {
+      headerColor = "#ffffff";
+    }
+
+    if (!buttonColor) {
+      buttonColor = "#aac96f";
+    }
     const template = document.createElement("template");
     template.innerHTML = `
       <style>
@@ -84,18 +99,27 @@ class ChatWidget extends HTMLElement {
           height: 60px;
           justify-content: center;
           align-items: center;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        #chat-icon ::slotted(*) {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
         }
 
         #widget-container {
           position: absolute;
-          top: -78vh;
+          top: -${chatboxHeight};
           left: 42px;
         }
 
         #chat-box {
           position: relative;
-          height: 80vh;
-          width: 500px;
+          height: ${chatboxHeight};
+          width: 450px;
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 4px 8px rgba(63, 63, 63, 0.5);
@@ -104,7 +128,7 @@ class ChatWidget extends HTMLElement {
           flex: 1;
         }
 
-        .chat-box-container {
+        #chat-box-container {
           display: flex;
           flex-direction: column;
           background-color: #ffffffff;
@@ -116,7 +140,7 @@ class ChatWidget extends HTMLElement {
           CHAT HEADER & FILTER
           ================================================================================ */
         #chat-box-header {
-          background-color: #ffffffff;
+          background-color: ${headerColor};
           border-bottom: 1px solid #e7e7e7ff;
           box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
           padding: 10px;
@@ -224,12 +248,7 @@ class ChatWidget extends HTMLElement {
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 5px;
           border: 1px solid #ccc;
-        }
-
-        .readed {
-          color: gray;
         }
 
         /* ================================================================================
@@ -281,7 +300,7 @@ class ChatWidget extends HTMLElement {
           padding: 10px 20px;
           border: none;
           border-radius: 50px;
-          background-color: #aac96f;
+          background-color: ${buttonColor};
           color: white;
           font-size: 1rem;
           cursor: pointer;
@@ -334,7 +353,7 @@ class ChatWidget extends HTMLElement {
           align-items: center;
           justify-content: space-between;
           font-size: 1rem;
-          background-color: #ffffffff;
+          background-color: ${headerColor};
           border-bottom: 1px solid #e7e7e7ff;
           box-shadow: 0 2px 4px rgba(165, 165, 165, 0.1);
         }
@@ -516,7 +535,7 @@ class ChatWidget extends HTMLElement {
         }
 
         .message-sending #btn-send-message {
-          background-color: #5b5bdfff;
+          background-color: ${buttonColor};
           border: none;
           border-radius: 50px;
           padding: 10.5px;
@@ -527,6 +546,10 @@ class ChatWidget extends HTMLElement {
           align-items: center;
         }
 
+        #btn-send-message:hover {
+          filter: brightness(0.9);
+        }
+
         .message-sending #btn-send-message svg {
           width: 20px;
           height: 20px;
@@ -534,7 +557,7 @@ class ChatWidget extends HTMLElement {
         }
 
         .message-sending button:hover {
-          background-color: #4b4bda;
+          background-color: #e8ffbeff;
         }
 
         /* ================================================================================
@@ -576,13 +599,19 @@ class ChatWidget extends HTMLElement {
         }
 
         #emoji-button:hover {
-          background-color: rgba(0, 0, 0, 0.1);
+          background-color: rgba(133, 133, 133, 0.1);
         }
 
         #emoji-button svg {
           width: 25px;
           height: 25px;
-          fill: #5b5bdfff;
+          fill: ${buttonColor};
+        }
+
+        #emoji-button svg:hover {
+          width: 25px;
+          height: 25px;
+          filter: brightness(0.9);
         }
 
         emoji-picker {
@@ -631,146 +660,17 @@ class ChatWidget extends HTMLElement {
             transform: rotate(360deg);
           }
         }
-
-        /* ================================================================================
-          RESPONSIVE DESIGN - TABLET (768px and below)
-          ================================================================================ */
-        @media (max-width: 768px) {
-          .chat-container {
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-          }
-
-          #chat-icon {
-            width: 55px;
-            height: 55px;
-          }
-
-          #chat-box {
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80vw;
-            max-width: 500px;
-            height: 85vh;
-            top: auto;
-            bottom: 75px;
-          }
-
-          .chat-filter {
-            width: 90%;
-          }
-
-          .chat-filter input {
-            font-size: 0.95rem;
-          }
-
-          #info-input input {
-            width: 80%;
-            font-size: 1rem;
-          }
-
-          #info-input #turn-back-button,
-          #info-input #continue-button {
-            padding: 8px 16px;
-            font-size: 0.95rem;
-          }
-
-          .message p {
-            max-width: 85%;
-            font-size: 0.95rem;
-          }
-
-          .message-sending .message-content {
-            padding: 8px 15px;
-          }
-
-          .message-sending #message-input {
-            font-size: 0.95rem;
-          }
-
-          .details-header button {
-            padding: 0.2rem 0.45rem;
-          }
-
-          .details-header #btn-x {
-            height: 26px;
-            width: 26px;
-          }
-        }
-
-        /* ================================================================================
-          RESPONSIVE DESIGN - MOBILE (480px and below)
-          ================================================================================ */
-        @media (max-width: 480px) {
-          #chat-icon {
-            width: 50px;
-            height: 50px;
-          }
-
-          #chat-icon svg {
-            width: 30px;
-            height: 30px;
-          }
-
-          #chat-box {
-            width: 98vw;
-            height: 90vh;
-            bottom: 65px;
-          }
-
-          .chat-filter {
-            width: 95%;
-            padding-left: 10px;
-          }
-
-          .chat-filter input {
-            font-size: 0.9rem;
-          }
-
-          #info-input h3 {
-            font-size: 1.2rem;
-          }
-
-          #info-input input {
-            width: 85%;
-            font-size: 0.95rem;
-            padding: 8px 10px;
-          }
-
-          .message p {
-            max-width: 80%;
-            padding: 8px;
-            font-size: 0.9rem;
-          }
-
-          .avatar {
-            width: 30px;
-            height: 30px;
-            font-size: 0.8rem;
-          }
-
-          .info h5 {
-            font-size: 0.9rem;
-          }
-
-          .message-sending {
-            padding: 8px;
-          }
-
-          .message-sending #btn-send-message {
-            padding: 8px;
-          }
-        }
       </style>
 
       <div class="chat-container">
         <div id="chat-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-            <path
-              d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z"
-            />
-          </svg>
+          <slot name="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+              <path
+                d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z"
+              />
+            </svg>
+          </slot>
         </div>
         <div id="widget-container">
           <div id="chat-box">
@@ -796,7 +696,7 @@ class ChatWidget extends HTMLElement {
               </div>
               <button id="btn-list-x">X</button>
             </div>
-            <div class="chat-box-container">
+            <div id="chat-box-container">
               <!-- Chat list items -->
               <div id="list-items">
                 <ul></ul>
@@ -893,6 +793,7 @@ class ChatWidget extends HTMLElement {
     const shadowRoot = this.shadowRoot;
 
     // ================== CONFIGURATION ==================
+    const avatarUrl = this.getAttribute("avatar-url");
     const BASE_URL = this.getAttribute("base-url");
     const PAGE_SIZE = 10;
     const SCROLL_THRESHOLD = 20;
@@ -919,7 +820,7 @@ class ChatWidget extends HTMLElement {
     let chatListHasMore = true;
     let currentSearchTerm = "";
 
-    let chatBoxContainerDisplay = true;
+    let chatBoxDisplay = true;
     let chatBoxListContainerDisplay = false;
     let chatBoxInputInfoDisplay = true;
     let chatDetailsDisplay = true;
@@ -928,7 +829,7 @@ class ChatWidget extends HTMLElement {
     const listEl = shadowRoot.querySelector("#list-items ul");
     const infoTitle = shadowRoot.querySelector("#info-input .info-header h4");
     const chatBoxIcon = shadowRoot.querySelector("#chat-icon");
-    const chatBoxContainer = shadowRoot.querySelector("#chat-box");
+    const chatBox = shadowRoot.querySelector("#chat-box");
     const chatBoxFilter = shadowRoot.querySelector("#chat-box-header");
     const searchChatInput = shadowRoot.querySelector("#search-chat-input");
     const searchChatIcon = shadowRoot.querySelector("#search-chat-icon");
@@ -946,8 +847,6 @@ class ChatWidget extends HTMLElement {
     const errorInfoInput = shadowRoot.querySelector("#error-info-input");
     const btnSendMessage = shadowRoot.querySelector("#btn-send-message");
     const textarea = shadowRoot.getElementById("message-input");
-    const emojiButton = shadowRoot.getElementById("emoji-button");
-    const messageInput = shadowRoot.getElementById("message-input");
     const spinnerOverlay = shadowRoot.getElementById("spinner-overlay");
 
     userNameInput.value = fullName;
@@ -989,8 +888,8 @@ class ChatWidget extends HTMLElement {
         .map(
           (item) => `
                 <li data-id="${item.ma}">
-                    <img class="logo-item" src="${item.link_logo}" alt="Logo" />
-                    <h4 class="title-item">${item.ten}</h4>
+                    <img class="logo-item" src="${avatarUrl ?? item.link_logo}" alt="Logo" />
+                    <h5 class="title-item">${item.ten}</h5>
                 </li>
             `
         )
@@ -1183,19 +1082,18 @@ class ChatWidget extends HTMLElement {
         msgDiv.classList.add(isMe ? "me" : "partner");
         msgDiv.innerHTML = `
             <div class="info">
-                ${
-                  isMe
-                    ? `<div class="message-title">
+                ${isMe
+            ? `<div class="message-title">
                   <h5>${msg.ten}</h5>
                   <p class="message-time">${msg.ngay_gui}</p>
                 </div>
-                <img class="logo-item" src="${msg.link_logo}" alt="Logo" />`
-                    : `<img class="logo-item" src="${msg.link_logo}" alt="Logo" />
-                <div class="message-title">
-                  <h5>${msg.ten}</h5>
-                  <p class="message-time">${msg.ngay_gui}</p>
-                </div>`
-                }
+                <img class="logo-item" src="${avatarUrl ?? msg.link_logo}" alt="Logo" />`
+            : `<img class="logo-item" src="${avatarUrl ?? msg.link_logo}" alt="Logo" />
+               <div class="message-title">
+                 <h5>${msg.ten}</h5>
+                 <p class="message-time">${msg.ngay_gui}</p>
+               </div>`
+          }
             </div>
             <div class="message">
                 <p>${msg.noi_dung_tin_nhan}</p>
@@ -1344,7 +1242,7 @@ class ChatWidget extends HTMLElement {
     });
 
     // Display initialization
-    chatBoxContainer.style.display = chatBoxContainerDisplay ? "none" : "flex";
+    chatBox.style.display = chatBoxDisplay ? "none" : "flex";
     chatBoxListContainer.style.display = chatBoxListContainerDisplay
       ? "none"
       : "flex";
@@ -1354,15 +1252,16 @@ class ChatWidget extends HTMLElement {
 
     // Chat box icon click
     chatBoxIcon.addEventListener("click", function () {
-      if (chatBoxContainer) {
+      if (chatBox) {
         chatListCurrentPage = 1;
         chatListIsLoading = false;
         currentSearchTerm = "";
         searchChatInput.value = "";
 
+        chatBoxListContainer.scrollTop = 0;
         loadChatList();
-        chatBoxContainerDisplay = !chatBoxContainerDisplay;
-        chatBoxContainer.style.display = chatBoxContainerDisplay
+        chatBoxDisplay = !chatBoxDisplay;
+        chatBox.style.display = chatBoxDisplay
           ? "none"
           : "flex";
       }
@@ -1370,17 +1269,17 @@ class ChatWidget extends HTMLElement {
 
     // Close button
     btnX.addEventListener("click", function () {
-      if (chatBoxContainer) {
-        chatBoxContainerDisplay = true;
-        chatBoxContainer.style.display = "none";
+      if (chatBox) {
+        chatBoxDisplay = true;
+        chatBox.style.display = "none";
       }
     });
 
     // Close list button
     btnListX.addEventListener("click", function () {
-      if (chatBoxContainer) {
-        chatBoxContainerDisplay = true;
-        chatBoxContainer.style.display = "none";
+      if (chatBox) {
+        chatBoxDisplay = true;
+        chatBox.style.display = "none";
       }
     });
 
@@ -1392,6 +1291,7 @@ class ChatWidget extends HTMLElement {
       chatListCurrentPage = 1;
       chatListIsLoading = false;
 
+      chatBoxListContainer.scrollTop = 0;
       loadChatList(currentSearchTerm);
     });
 
@@ -1403,6 +1303,7 @@ class ChatWidget extends HTMLElement {
         chatListCurrentPage = 1;
         chatListIsLoading = false;
 
+        chatBoxListContainer.scrollTop = 0;
         loadChatList(currentSearchTerm);
       }
     });
@@ -1581,19 +1482,18 @@ class ChatWidget extends HTMLElement {
       msg.classList.add(isMe ? "me" : "partner");
       msg.innerHTML = `
           <div class="info">
-          ${
-            isMe
-              ? `<div class="message-title">
+          ${isMe
+          ? `<div class="message-title">
                 <h5>${data.ten}</h5>
                 <p class="message-time">${data.ngay_gui}</p>
               </div>
-              <img class="logo-item" src="${data.link_logo}" alt="Logo" />`
-              : `<img class="logo-item" src="${data.link_logo}" alt="Logo" />
+              <img class="logo-item" src="${avatarUrl ?? data.link_logo}" alt="Logo" />`
+          : `<img class="logo-item" src="${avatarUrl ?? data.link_logo}" alt="Logo" />
               <div class="message-title">
                 <h5>${data.ten}</h5>
                 <p class="message-time">${data.ngay_gui}</p>
               </div>`
-          }
+        }
           </div>
           <div class="message">
               <p>${data.noi_dung_tin_nhan}</p>

@@ -1,6 +1,6 @@
 {
   "name": "@minhnd1010/chat-widget",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Chat widget hỗ trợ SignalR real-time cho website",
   "main": "index.js",
   "type": "module",

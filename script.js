@@ -31,7 +31,7 @@ let chatListIsLoading = false;
 let chatListHasMore = true;
 let currentSearchTerm = "";
 
-let chatBoxContainerDisplay = true;
+let chatBoxDisplay = true;
 let chatBoxListContainerDisplay = false;
 let chatBoxInputInfoDisplay = true;
 let chatDetailsDisplay = true;
@@ -42,7 +42,7 @@ let attachedFiles = [];
 const listEl = document.querySelector("#list-items ul");
 const infoTitle = document.querySelector('#info-input .info-header h4');
 const chatBoxIcon = document.querySelector('#chat-icon');
-const chatBoxContainer = document.querySelector('#chat-box');
+const chatBox = document.querySelector('#chat-box');
 const chatBoxFilter = document.querySelector('#chat-box-header');
 const searchChatInput = document.querySelector('#search-chat-input');
 const searchChatIcon = document.querySelector('#search-chat-icon');
@@ -106,7 +106,7 @@ function renderChatList(items, append = false) {
         .map(item => `
             <li data-id="${item.ma}">
                 <img class="logo-item" src="${item.link_logo}" alt="Logo" />
-                <h4 class="title-item">${item.ten}</h4>
+                <h5 class="title-item">${item.ten}</h5>
             </li>
         `)
         .join("");
@@ -468,7 +468,7 @@ userNameInput.addEventListener('input', function () {
 });
 
 // Display initialization
-chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
+chatBox.style.display = chatBoxDisplay ? 'none' : 'flex';
 chatBoxListContainer.style.display = chatBoxListContainerDisplay ? 'none' : 'flex';
 chatBoxInputInfo.style.display = chatBoxInputInfoDisplay ? 'none' : 'flex';
 chatDetails.style.display = chatDetailsDisplay ? 'none' : 'flex';
@@ -476,31 +476,32 @@ spinnerOverlay.style.display = 'none';
 
 // Chat box icon click
 chatBoxIcon.addEventListener('click', function () {
-    if (chatBoxContainer) {
+    if (chatBox) {
         chatListCurrentPage = 1;
         chatListIsLoading = false;
         currentSearchTerm = "";
         searchChatInput.value = '';
 
+        chatBoxListContainer.scrollTop = 0;
         loadChatList();
-        chatBoxContainerDisplay = !chatBoxContainerDisplay;
-        chatBoxContainer.style.display = chatBoxContainerDisplay ? 'none' : 'flex';
+        chatBoxDisplay = !chatBoxDisplay;
+        chatBox.style.display = chatBoxDisplay ? 'none' : 'flex';
     }
 });
 
 // Close button
 btnX.addEventListener('click', function () {
-    if (chatBoxContainer) {
-        chatBoxContainerDisplay = true;
-        chatBoxContainer.style.display = 'none';
+    if (chatBox) {
+        chatBoxDisplay = true;
+        chatBox.style.display = 'none';
     }
 });
 
 // Close list button
 btnListX.addEventListener('click', function () {
-    if (chatBoxContainer) {
-        chatBoxContainerDisplay = true;
-        chatBoxContainer.style.display = 'none';
+    if (chatBox) {
+        chatBoxDisplay = true;
+        chatBox.style.display = 'none';
     }
 });
 
@@ -512,6 +513,7 @@ searchChatIcon.addEventListener('click', function () {
     chatListCurrentPage = 1;
     chatListIsLoading = false;
 
+    chatBoxListContainer.scrollTop = 0;
     loadChatList(currentSearchTerm);
 });
 
@@ -523,6 +525,7 @@ searchChatInput.addEventListener('keypress', function (event) {
         chatListCurrentPage = 1;
         chatListIsLoading = false;
 
+        chatBoxListContainer.scrollTop = 0;
         loadChatList(currentSearchTerm);
     }
 });
