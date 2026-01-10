@@ -38,6 +38,12 @@ class ChatWidget extends HTMLElement {
 
   render() {
     // Determine position styles based on attributes
+    let positionType = this.getAttribute("position");
+    if (!positionType) {
+      positionType = "static";
+    }
+    const isRelativeOrStatic = positionType === "relative" || positionType === "static";
+
     let position = "";
     const top = this.getAttribute("top");
     const left = this.getAttribute("left");
@@ -89,8 +95,8 @@ class ChatWidget extends HTMLElement {
           CHAT CONTAINER & MAIN BOX LAYOUT
           ================================================================================ */
         .chat-container {
-          position: fixed;
-          ${position}
+          position: ${positionType};
+          ${isRelativeOrStatic ? null : position}
         }
 
         #chat-icon {
@@ -895,7 +901,7 @@ class ChatWidget extends HTMLElement {
       // if the icon is at the top half of the screen
       if (iconRect.top > viewportHeight / 2) {
         widgetContainner.style.bottom = iconEl.offsetHeight + 'px';
-      }else{
+      } else {
         widgetContainner.style.top = iconEl.offsetHeight + 'px';
       }
 
