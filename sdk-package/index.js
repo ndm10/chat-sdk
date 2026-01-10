@@ -39,10 +39,10 @@ class ChatWidget extends HTMLElement {
   render() {
     // Determine position styles based on attributes
     let positionType = this.getAttribute("position");
-    if (!positionType) {
-      positionType = "static";
+    if (!positionType || !["fixed", "absolute", "relative", "sticky"].includes(positionType)) {
+      positionType = "relative";
     }
-    const isRelativeOrStatic = positionType === "relative" || positionType === "static";
+    const isRelativePosition = positionType === "relative";
 
     let position = "";
     const top = this.getAttribute("top");
@@ -96,7 +96,7 @@ class ChatWidget extends HTMLElement {
           ================================================================================ */
         .chat-container {
           position: ${positionType};
-          ${isRelativeOrStatic ? null : position}
+          ${isRelativePosition ? null : position}
         }
 
         #chat-icon {
