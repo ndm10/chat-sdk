@@ -45,7 +45,7 @@ class ChatWidget extends HTMLElement {
     const right = this.getAttribute("right");
     let headerColor = this.getAttribute("header-color");
     let buttonColor = this.getAttribute("button-color");
-    let chatboxHeight = this.getAttribute("chatbox-height");
+    let chatBoxHeight = this.getAttribute("chatbox-height");
 
     if (top) {
       position += `top: ${top};`;
@@ -64,8 +64,8 @@ class ChatWidget extends HTMLElement {
       position = `bottom: 20px; left: 20px;`;
     }
 
-    if (!chatboxHeight) {
-      chatboxHeight = "80vh";
+    if (!chatBoxHeight) {
+      chatBoxHeight = "80vh";
     }
 
     if (!headerColor) {
@@ -104,6 +104,11 @@ class ChatWidget extends HTMLElement {
           align-items: center;
         }
 
+        #chat-icon:hover {
+          cursor: pointer;
+          scale: 1.1;
+        }
+
         #chat-icon ::slotted(*) {
           width: 100%;
           height: 100%;
@@ -112,13 +117,11 @@ class ChatWidget extends HTMLElement {
 
         #widget-container {
           position: absolute;
-          top: -${chatboxHeight};
-          left: 42px;
         }
 
         #chat-box {
           position: relative;
-          height: ${chatboxHeight};
+          height: ${chatBoxHeight};
           width: 450px;
           border-radius: 16px;
           overflow: hidden;
@@ -802,11 +805,8 @@ class ChatWidget extends HTMLElement {
 
     // ================== USER INPUT ==================
     let token = this.getAttribute("token");
-
     let userId = this.getAttribute("ma-doi-tac-nsd");
-
     let fullName = this.getAttribute("ten");
-
     let ePartnerCode = this.getAttribute("e-partner-code");
 
     // ================== STATE MANAGEMENT ==================
@@ -829,6 +829,7 @@ class ChatWidget extends HTMLElement {
     const listEl = shadowRoot.querySelector("#list-items ul");
     const infoTitle = shadowRoot.querySelector("#info-input .info-header h4");
     const chatBoxIcon = shadowRoot.querySelector("#chat-icon");
+    const widgetContainner = shadowRoot.querySelector('#widget-container')
     const chatBox = shadowRoot.querySelector("#chat-box");
     const chatBoxFilter = shadowRoot.querySelector("#chat-box-header");
     const searchChatInput = shadowRoot.querySelector("#search-chat-input");
@@ -879,6 +880,30 @@ class ChatWidget extends HTMLElement {
     function scrollToBottom() {
       if (messageContainer) {
         messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+    }
+
+    function adjustChatBoxPosition(iconEl, chatBoxEl) {
+      // Get the size of window
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const chatBoxHeight = chatBoxEl.offsetHeight;
+      console.log('Chat box height:', chatBoxHeight);
+
+      const iconRect = iconEl.getBoundingClientRect();
+
+      // if the icon is at the top half of the screen
+      if (iconRect.top > viewportHeight / 2) {
+        widgetContainner.style.bottom = iconEl.offsetHeight + 'px';
+      }else{
+        widgetContainner.style.top = iconEl.offsetHeight + 'px';
+      }
+
+      // if the icon is ar the left half of the screen
+      if (iconRect.left < viewportWidth / 2) {
+        widgetContainner.style.left = '42px';
+      } else {
+        widgetContainner.style.right = '42px';
       }
     }
 
@@ -1200,6 +1225,11 @@ class ChatWidget extends HTMLElement {
     }
 
     // ================== EVENT LISTENERS ==================
+    // Window resize to adjust chat box position
+    window.addEventListener("resize", function () {
+      adjustChatBoxPosition(chatBoxIcon, chatBox);
+    });
+
     // Auto resize textarea
     textarea.addEventListener("input", autoResize, false);
 
@@ -1264,6 +1294,7 @@ class ChatWidget extends HTMLElement {
         chatBox.style.display = chatBoxDisplay
           ? "none"
           : "flex";
+        adjustChatBoxPosition(chatBoxIcon, chatBox);
       }
     });
 
